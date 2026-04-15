@@ -182,7 +182,7 @@ struct DashboardVehicleCard: View {
                     .foregroundColor(.secondary)
                 
                 ForEach(upcomingServices.prefix(3)) { upcoming in
-                    UpcomingServiceRow(upcoming: upcoming, currentMileage: vehicle.currentMileage)
+                    DashboardUpcomingRow(upcoming: upcoming, currentMileage: vehicle.currentMileage)
                 }
                 
                 if upcomingServices.count > 3 {
@@ -198,8 +198,8 @@ struct DashboardVehicleCard: View {
     }
 }
 
-// MARK: - Upcoming Service Row
-struct UpcomingServiceRow: View {
+// MARK: - Dashboard Upcoming Row (simplified for dashboard display)
+struct DashboardUpcomingRow: View {
     let upcoming: UpcomingService
     let currentMileage: Int
     
@@ -207,13 +207,13 @@ struct UpcomingServiceRow: View {
         upcoming.targetMileage - currentMileage
     }
     
-    private var status: DashboardView.Status {
+    private var statusColor: Color {
         if milesUntil < 0 {
-            return .overdue
+            return .red
         } else if milesUntil < 500 {
-            return .dueSoon
+            return .orange
         } else {
-            return .good
+            return .green
         }
     }
     
@@ -235,7 +235,7 @@ struct UpcomingServiceRow: View {
             } else {
                 Text("\(milesUntil) mi")
                     .font(.caption)
-                    .foregroundColor(status.color)
+                    .foregroundColor(statusColor)
             }
         }
         .padding(.vertical, 2)
