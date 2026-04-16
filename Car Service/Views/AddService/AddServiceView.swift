@@ -59,14 +59,6 @@ struct AddServiceView: View {
                     Text(selectedVehicle?.displayName ?? "")
                         .fontWeight(.medium)
                 }
-                
-                HStack {
-                    Text("Current Mileage:")
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("\(selectedVehicle?.currentMileage ?? 0) mi")
-                        .fontWeight(.medium)
-                }
             }
             
             // Service Type
@@ -166,6 +158,15 @@ struct AddServiceView: View {
                 .foregroundColor(isValid ? .blue : .gray)
             }
         }
+        .navigationTitle("Add Service")
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    hideKeyboard()
+                }
+            }
+        }
         .alert("Service Record Saved", isPresented: $showingConfirmation) {
             Button("OK") {
                 resetForm()
@@ -210,10 +211,16 @@ struct AddServiceView: View {
         provider = ""
         cost = ""
     }
+    
+    // Dismiss keyboard
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
 }
 
 // MARK: - Add Service Sheet (for modal presentation)
 struct AddServiceSheet: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     let vehicle: Vehicle
     
@@ -295,7 +302,7 @@ struct AddServiceSheet: View {
                 
                 // Service Details
                 Section("Service Details") {
-                    TextField("Service Mileage (Current: \(vehicle.currentMileage))", text: $mileage)
+                    TextField("Service Mileage", text: $mileage)
                         .keyboardType(.numberPad)
                     
                     DatePicker("Date", selection: $date, displayedComponents: .date)
@@ -323,8 +330,18 @@ struct AddServiceSheet: View {
                     }
                     .disabled(!isValid)
                 }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        hideKeyboard()
+                    }
+                }
             }
         }
+    }
+    
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
     private func saveService() {
@@ -341,6 +358,8 @@ struct AddServiceSheet: View {
             cost: costDecimal,
             vehicle: vehicle
         )
+        
+        modelContext.insert(serviceRecord)
         
         if mileageInt > vehicle.currentMileage {
             vehicle.currentMileage = mileageInt

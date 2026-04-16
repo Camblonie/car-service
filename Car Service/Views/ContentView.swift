@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  Car Service
 //
-//  Main tab view with 5 tabs: Vehicles, Services, Add Service, Dashboard, Settings
+//  Main tab view with 4 tabs: Vehicles, Services, Dashboard, Settings
 //
 
 import SwiftUI
@@ -31,26 +31,19 @@ struct ContentView: View {
                 }
                 .tag(1)
             
-            // Tab 3: Add Service
-            AddServiceView(selectedVehicle: selectedVehicle)
-                .tabItem {
-                    Label("Add Service", systemImage: "plus.circle.fill")
-                }
-                .tag(2)
-            
-            // Tab 4: Dashboard
+            // Tab 3: Dashboard
             DashboardView(selectedVehicle: selectedVehicle)
                 .tabItem {
                     Label("Dashboard", systemImage: "gauge.with.dots.needle.67percent")
                 }
-                .tag(3)
+                .tag(2)
             
-            // Tab 5: Settings
+            // Tab 4: Settings
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
-                .tag(4)
+                .tag(3)
         }
         .onAppear {
             // Select first vehicle by default if available

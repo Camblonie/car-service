@@ -67,6 +67,7 @@ struct ServiceHistoryView: View {
             .sheet(isPresented: $showingAddService) {
                 if let vehicle = selectedVehicle {
                     AddServiceSheet(vehicle: vehicle)
+                        .presentationDragIndicator(.visible)
                 }
             }
         }

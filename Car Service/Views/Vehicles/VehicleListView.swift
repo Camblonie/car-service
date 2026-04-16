@@ -14,6 +14,8 @@ struct VehicleListView: View {
     
     @Binding var selectedVehicle: Vehicle?
     @State private var showingAddVehicle = false
+    @State private var showingEditVehicle = false
+    @State private var vehicleToEdit: Vehicle?
     @State private var searchText = ""
     @State private var vehicleToDelete: Vehicle?
     @State private var showingDeleteConfirmation = false
@@ -51,6 +53,11 @@ struct VehicleListView: View {
             .sheet(isPresented: $showingAddVehicle) {
                 AddEditVehicleView(vehicle: nil)
             }
+            .sheet(isPresented: $showingEditVehicle) {
+                if let vehicle = vehicleToEdit {
+                    AddEditVehicleView(vehicle: vehicle)
+                }
+            }
             .alert("Delete Vehicle?", isPresented: $showingDeleteConfirmation, presenting: vehicleToDelete) { vehicle in
                 Button("Cancel", role: .cancel) {}
                 Button("Delete", role: .destructive) {
@@ -69,6 +76,15 @@ struct VehicleListView: View {
             ForEach(filteredVehicles) { vehicle in
                 NavigationLink(value: vehicle) {
                     VehicleCard(vehicle: vehicle, isSelected: selectedVehicle?.id == vehicle.id)
+                }
+                .swipeActions(edge: .leading) {
+                    Button {
+                        vehicleToEdit = vehicle
+                        showingEditVehicle = true
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    .tint(.blue)
                 }
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
