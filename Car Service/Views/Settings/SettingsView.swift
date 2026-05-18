@@ -95,9 +95,9 @@ struct SettingsView: View {
             .navigationTitle("Settings")
         }
         // Export file presentation
-        .background(
-            ShareSheetWrapper(isPresented: $showingShareSheet, items: shareItems)
-        )
+        .sheet(isPresented: $showingShareSheet) {
+            ShareSheet(items: shareItems)
+        }
         // Import file picker
         .fileImporter(
             isPresented: $showingImportPicker,
@@ -138,34 +138,41 @@ struct SettingsView: View {
     // MARK: - Export Functionality
     
     private func exportData(includePhotos: Bool) {
-        let exportData = ExportData(
-            vehicles: vehicles.map { VehicleExport(from: $0, includePhotos: includePhotos) },
-            serviceRecords: services.map { ServiceRecordExport(from: $0) },
-            upcomingServices: upcoming.map { UpcomingServiceExport(from: $0) },
-            exportDate: Date(),
-            version: "1.0"
-        )
-        
-        do {
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            encoder.outputFormatting = .prettyPrinted
-            
-            let data = try encoder.encode(exportData)
-            
-            // Save to temporary directory
-            let tempURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent("CarServiceBackup_\(Date().timeIntervalSince1970)")
-                .appendingPathExtension("json")
-            
-            try data.write(to: tempURL)
-            
-            shareItems = [tempURL]
-            showingShareSheet = true
-            
-        } catch {
-            alertMessage = "Export failed: \(error.localizedDescription)"
-            showingAlert = true
+        // Show loading indicator or perform on background thread
+        Task {
+            do {
+                let exportData = ExportData(
+                    vehicles: vehicles.map { VehicleExport(from: $0, includePhotos: includePhotos) },
+                    serviceRecords: services.map { ServiceRecordExport(from: $0) },
+                    upcomingServices: upcoming.map { UpcomingServiceExport(from: $0) },
+                    exportDate: Date(),
+                    version: "1.0"
+                )
+                
+                let encoder = JSONEncoder()
+                encoder.dateEncodingStrategy = .iso8601
+                encoder.outputFormatting = .prettyPrinted
+                
+                let data = try encoder.encode(exportData)
+                
+                // Save to temporary directory
+                let tempURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("CarServiceBackup_\(Date().timeIntervalSince1970)")
+                    .appendingPathExtension("json")
+                
+                try data.write(to: tempURL)
+                
+                await MainActor.run {
+                    shareItems = [tempURL]
+                    showingShareSheet = true
+                }
+                
+            } catch {
+                await MainActor.run {
+                    alertMessage = "Export failed: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
         }
     }
     
@@ -313,37 +320,6 @@ struct StatRow: View {
             Text("\(value)")
                 .font(.headline)
                 .foregroundColor(color)
-        }
-    }
-}
-
-// MARK: - Share Sheet Wrapper
-struct ShareSheetWrapper: UIViewControllerRepresentable {
-    @Binding var isPresented: Bool
-    let items: [Any]
-    
-    func makeUIViewController(context: Context) -> UIViewController {
-        let controller = UIViewController()
-        controller.view.backgroundColor = .clear
-        
-        DispatchQueue.main.async {
-            presentShareSheet(from: controller)
-        }
-        
-        return controller
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-    
-    private func presentShareSheet(from controller: UIViewController) {
-        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        activityVC.completionWithItemsHandler = { _, _, _, _ in
-            isPresented = false
-        }
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(activityVC, animated: true)
         }
     }
 }
