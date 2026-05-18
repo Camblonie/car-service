@@ -29,13 +29,14 @@ final class VehiclePhoto {
         imageData: Data,
         caption: String? = nil,
         isThumbnail: Bool = false,
-        vehicle: Vehicle? = nil
+        vehicle: Vehicle? = nil,
+        createdAt: Date? = nil
     ) {
         self.id = UUID()
         self.imageData = imageData
         self.caption = caption
         self.isThumbnail = isThumbnail
         self.vehicle = vehicle
-        self.createdAt = Date()
+        self.createdAt = createdAt ?? Date()
     }
 }

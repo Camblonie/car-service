@@ -34,7 +34,8 @@ final class ServiceRecord {
         notes: String = "",
         provider: String? = nil,
         cost: Decimal? = nil,
-        vehicle: Vehicle? = nil
+        vehicle: Vehicle? = nil,
+        createdAt: Date? = nil
     ) {
         self.id = UUID()
         self.serviceTypeRaw = serviceType.rawValue
@@ -44,6 +45,6 @@ final class ServiceRecord {
         self.provider = provider
         self.cost = cost
         self.vehicle = vehicle
-        self.createdAt = Date()
+        self.createdAt = createdAt ?? Date()
     }
 }

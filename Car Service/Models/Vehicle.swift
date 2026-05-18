@@ -36,7 +36,8 @@ final class Vehicle {
         oilChangeInterval: Int = 5000,
         oilWeight: String = "",
         oilQuantity: String = "",
-        oilFilterPartNumber: String = ""
+        oilFilterPartNumber: String = "",
+        createdAt: Date? = nil
     ) {
         self.id = UUID()
         self.make = make
@@ -48,7 +49,7 @@ final class Vehicle {
         self.oilWeight = oilWeight
         self.oilQuantity = oilQuantity
         self.oilFilterPartNumber = oilFilterPartNumber
-        self.createdAt = Date()
+        self.createdAt = createdAt ?? Date()
         self.services = []
         self.photos = []
         self.upcomingServices = []

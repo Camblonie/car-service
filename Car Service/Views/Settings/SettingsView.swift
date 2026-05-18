@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var importData: ExportData?
     @State private var exportURL: URL?
     @State private var showingShareSheet = false
+    @State private var shareItems: [Any] = []
     @State private var alertMessage = ""
     @State private var showingAlert = false
     
@@ -94,11 +95,9 @@ struct SettingsView: View {
             .navigationTitle("Settings")
         }
         // Export file presentation
-        .sheet(isPresented: $showingExportSheet) {
-            if let url = exportURL {
-                ShareSheet(items: [url])
-            }
-        }
+        .background(
+            ShareSheetWrapper(isPresented: $showingShareSheet, items: shareItems)
+        )
         // Import file picker
         .fileImporter(
             isPresented: $showingImportPicker,
@@ -161,8 +160,8 @@ struct SettingsView: View {
             
             try data.write(to: tempURL)
             
-            exportURL = tempURL
-            showingExportSheet = true
+            shareItems = [tempURL]
+            showingShareSheet = true
             
         } catch {
             alertMessage = "Export failed: \(error.localizedDescription)"
@@ -226,7 +225,8 @@ struct SettingsView: View {
                 oilChangeInterval: vehicleExport.oilChangeInterval,
                 oilWeight: vehicleExport.oilWeight,
                 oilQuantity: vehicleExport.oilQuantity,
-                oilFilterPartNumber: vehicleExport.oilFilterPartNumber
+                oilFilterPartNumber: vehicleExport.oilFilterPartNumber,
+                createdAt: vehicleExport.createdAt
             )
             
             modelContext.insert(vehicle)
@@ -239,7 +239,8 @@ struct SettingsView: View {
                         imageData: imageData,
                         caption: photoExport.caption,
                         isThumbnail: photoExport.isThumbnail,
-                        vehicle: vehicle
+                        vehicle: vehicle,
+                        createdAt: photoExport.createdAt
                     )
                     modelContext.insert(photo)
                 }
@@ -256,7 +257,8 @@ struct SettingsView: View {
                     notes: recordExport.notes,
                     provider: recordExport.provider,
                     cost: recordExport.cost,
-                    vehicle: vehicle
+                    vehicle: vehicle,
+                    createdAt: recordExport.createdAt
                 )
                 modelContext.insert(record)
             }
@@ -270,7 +272,8 @@ struct SettingsView: View {
                     targetMileage: upcomingExport.targetMileage,
                     targetDate: upcomingExport.targetDate,
                     notes: upcomingExport.notes,
-                    vehicle: vehicle
+                    vehicle: vehicle,
+                    createdAt: upcomingExport.createdAt
                 )
                 upcomingService.isCompleted = upcomingExport.isCompleted
                 modelContext.insert(upcomingService)
@@ -314,6 +317,37 @@ struct StatRow: View {
     }
 }
 
+// MARK: - Share Sheet Wrapper
+struct ShareSheetWrapper: UIViewControllerRepresentable {
+    @Binding var isPresented: Bool
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = UIViewController()
+        controller.view.backgroundColor = .clear
+        
+        DispatchQueue.main.async {
+            presentShareSheet(from: controller)
+        }
+        
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    
+    private func presentShareSheet(from controller: UIViewController) {
+        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        activityVC.completionWithItemsHandler = { _, _, _, _ in
+            isPresented = false
+        }
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+            rootViewController.present(activityVC, animated: true)
+        }
+    }
+}
+
 // MARK: - Share Sheet
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]
@@ -346,6 +380,7 @@ struct VehicleExport: Codable {
     let oilWeight: String
     let oilQuantity: String
     let oilFilterPartNumber: String
+    let createdAt: Date
     let photos: [VehiclePhotoExport]
     
     init(from vehicle: Vehicle, includePhotos: Bool) {
@@ -359,6 +394,7 @@ struct VehicleExport: Codable {
         self.oilWeight = vehicle.oilWeight
         self.oilQuantity = vehicle.oilQuantity
         self.oilFilterPartNumber = vehicle.oilFilterPartNumber
+        self.createdAt = vehicle.createdAt
         
         if includePhotos {
             self.photos = (vehicle.photos ?? []).map { VehiclePhotoExport(from: $0) }
@@ -369,14 +405,18 @@ struct VehicleExport: Codable {
 }
 
 struct VehiclePhotoExport: Codable {
+    let id: UUID
     let imageData: String // Base64 encoded
     let caption: String?
     let isThumbnail: Bool
+    let createdAt: Date
     
     init(from photo: VehiclePhoto) {
+        self.id = photo.id
         self.imageData = photo.imageData.base64EncodedString()
         self.caption = photo.caption
         self.isThumbnail = photo.isThumbnail
+        self.createdAt = photo.createdAt
     }
 }
 
@@ -389,6 +429,7 @@ struct ServiceRecordExport: Codable {
     let notes: String
     let provider: String?
     let cost: Decimal?
+    let createdAt: Date
     
     init(from record: ServiceRecord) {
         self.id = record.id
@@ -399,6 +440,7 @@ struct ServiceRecordExport: Codable {
         self.notes = record.notes
         self.provider = record.provider
         self.cost = record.cost
+        self.createdAt = record.createdAt
     }
 }
 
@@ -410,6 +452,7 @@ struct UpcomingServiceExport: Codable {
     let targetDate: Date?
     let notes: String
     let isCompleted: Bool
+    let createdAt: Date
     
     init(from upcoming: UpcomingService) {
         self.id = upcoming.id
@@ -419,6 +462,7 @@ struct UpcomingServiceExport: Codable {
         self.targetDate = upcoming.targetDate
         self.notes = upcoming.notes
         self.isCompleted = upcoming.isCompleted
+        self.createdAt = upcoming.createdAt
     }
 }
 

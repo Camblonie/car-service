@@ -31,7 +31,8 @@ final class UpcomingService {
         targetMileage: Int,
         targetDate: Date? = nil,
         notes: String = "",
-        vehicle: Vehicle? = nil
+        vehicle: Vehicle? = nil,
+        createdAt: Date? = nil
     ) {
         self.id = UUID()
         self.serviceTypeRaw = serviceType.rawValue
@@ -40,6 +41,6 @@ final class UpcomingService {
         self.notes = notes
         self.isCompleted = false
         self.vehicle = vehicle
-        self.createdAt = Date()
+        self.createdAt = createdAt ?? Date()
     }
 }
