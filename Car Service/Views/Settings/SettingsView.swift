@@ -95,9 +95,9 @@ struct SettingsView: View {
             .navigationTitle("Settings")
         }
         // Export file presentation
-        .sheet(isPresented: $showingShareSheet) {
-            ShareSheet(items: shareItems)
-        }
+        .background(
+            ShareSheetPresenter(isPresented: $showingShareSheet, items: shareItems)
+        )
         // Import file picker
         .fileImporter(
             isPresented: $showingImportPicker,
@@ -320,6 +320,39 @@ struct StatRow: View {
             Text("\(value)")
                 .font(.headline)
                 .foregroundColor(color)
+        }
+    }
+}
+
+// MARK: - Share Sheet Presenter
+struct ShareSheetPresenter: UIViewControllerRepresentable {
+    @Binding var isPresented: Bool
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = UIViewController()
+        controller.view.backgroundColor = .clear
+        
+        DispatchQueue.main.async {
+            presentShareSheet(from: controller)
+        }
+        
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    
+    private func presentShareSheet(from controller: UIViewController) {
+        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        activityVC.completionWithItemsHandler = { _, _, _, _ in
+            DispatchQueue.main.async {
+                isPresented = false
+            }
+        }
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+            rootViewController.present(activityVC, animated: true)
         }
     }
 }
