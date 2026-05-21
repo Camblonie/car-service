@@ -616,6 +616,22 @@ struct VehicleExport: Codable {
             self.photos = []
         }
     }
+    
+    // Initializer for CSV import
+    init(id: UUID, make: String, model: String, year: Int, vin: String?, currentMileage: Int, oilChangeInterval: Int, oilWeight: String, oilQuantity: String, oilFilterPartNumber: String, photos: [VehiclePhotoExport], createdAt: Date?) {
+        self.id = id
+        self.make = make
+        self.model = model
+        self.year = year
+        self.vin = vin
+        self.currentMileage = currentMileage
+        self.oilChangeInterval = oilChangeInterval
+        self.oilWeight = oilWeight
+        self.oilQuantity = oilQuantity
+        self.oilFilterPartNumber = oilFilterPartNumber
+        self.photos = photos
+        self.createdAt = createdAt ?? Date()
+    }
 }
 
 struct VehiclePhotoExport: Codable {
@@ -655,6 +671,19 @@ struct ServiceRecordExport: Codable {
         self.provider = record.provider
         self.cost = record.cost
         self.createdAt = record.createdAt
+    }
+    
+    // Initializer for CSV import
+    init(id: UUID, vehicleId: UUID, serviceType: String, mileage: Int, date: Date, notes: String, provider: String?, cost: Decimal?, createdAt: Date?) {
+        self.id = id
+        self.vehicleId = vehicleId
+        self.serviceType = serviceType
+        self.mileage = mileage
+        self.date = date
+        self.notes = notes
+        self.provider = provider
+        self.cost = cost
+        self.createdAt = createdAt ?? Date()
     }
 }
 
