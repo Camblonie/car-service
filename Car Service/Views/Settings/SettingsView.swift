@@ -189,7 +189,6 @@ struct SettingsView: View {
         Task {
             do {
                 let data: Data
-                let fileExtension: String
                 let fileName: String
                 
                 switch format {
@@ -206,12 +205,10 @@ struct SettingsView: View {
                     encoder.dateEncodingStrategy = .iso8601
                     encoder.outputFormatting = .prettyPrinted
                     data = try encoder.encode(exportData)
-                    fileExtension = "json"
                     fileName = "CarServiceBackup_\(Date().timeIntervalSince1970).json"
                     
                 case .csv:
                     data = try generateCSV(includePhotos: includePhotos)
-                    fileExtension = "csv"
                     fileName = "CarServiceExport_\(Date().timeIntervalSince1970).csv"
                 }
                 
