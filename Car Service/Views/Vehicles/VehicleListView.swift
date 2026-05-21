@@ -83,7 +83,15 @@ struct VehicleListView: View {
         List {
             ForEach(filteredVehicles) { vehicle in
                 NavigationLink(value: vehicle) {
-                    VehicleCard(vehicle: vehicle, isSelected: selectedVehicle?.id == vehicle.id)
+                    VehicleCard(
+                        vehicle: vehicle,
+                        isSelected: selectedVehicle?.id == vehicle.id,
+                        onMileageUpdate: {
+                            vehicleToUpdateMileage = vehicle
+                            newMileage = "\(vehicle.currentMileage)"
+                            showingMileageUpdate = true
+                        }
+                    )
                 }
                 .swipeActions(edge: .leading) {
                     Button {
@@ -135,6 +143,7 @@ struct VehicleListView: View {
 struct VehicleCard: View {
     let vehicle: Vehicle
     let isSelected: Bool
+    let onMileageUpdate: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {
@@ -184,6 +193,19 @@ struct VehicleCard: View {
             }
             
             Spacer()
+            
+            // Quick mileage update button
+            Button(action: onMileageUpdate) {
+                Image(systemName: "speedometer")
+                    .font(.system(size: 20))
+                    .foregroundColor(.blue)
+                    .frame(width: 36, height: 36)
+                    .background(
+                        Circle()
+                            .fill(Color.blue.opacity(0.1))
+                    )
+            }
+            .buttonStyle(.plain)
             
             if isSelected {
                 Image(systemName: "checkmark.circle.fill")
@@ -307,4 +329,20 @@ struct EmptyVehicleView: View {
 #Preview {
     VehicleListView(selectedVehicle: .constant(nil))
         .modelContainer(for: [Vehicle.self, ServiceRecord.self, VehiclePhoto.self, UpcomingService.self], inMemory: true)
+}
+
+#Preview("Vehicle Card") {
+    VStack {
+        VehicleCard(
+            vehicle: Vehicle(make: "Toyota", model: "Camry", year: 2020, currentMileage: 50000),
+            isSelected: true,
+            onMileageUpdate: {}
+        )
+        VehicleCard(
+            vehicle: Vehicle(make: "Honda", model: "Civic", year: 2021, currentMileage: 30000),
+            isSelected: false,
+            onMileageUpdate: {}
+        )
+    }
+    .padding()
 }
