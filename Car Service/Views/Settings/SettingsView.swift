@@ -340,12 +340,13 @@ struct SettingsView: View {
             let type = fields[0]
             
             if type == "Vehicle" && fields.count >= 7 {
+                let vin = fields.count > 5 && !fields[5].isEmpty ? fields[5] : nil
                 let vehicleExport = VehicleExport(
                     id: UUID(),
                     make: fields.count > 2 ? fields[2] : "",
                     model: fields.count > 3 ? fields[3] : "",
                     year: Int(fields.count > 4 ? fields[4] : "0") ?? 0,
-                    vin: fields.count > 5 ? fields[5] : nil,
+                    vin: vin,
                     currentMileage: Int(fields.count > 6 ? fields[6] : "0") ?? 0,
                     oilChangeInterval: nil,
                     oilWeight: nil,
@@ -361,6 +362,16 @@ struct SettingsView: View {
                 let vehicleName = fields[1]
                 let vehicleExport = vehicleMap[vehicleName]
                 
+                // Parse cost as Decimal
+                let cost: Decimal?
+                if fields.count > 12, !fields[12].isEmpty, let costDouble = Double(fields[12]) {
+                    cost = Decimal(costDouble)
+                } else {
+                    cost = nil
+                }
+                
+                let provider = fields.count > 11 && !fields[11].isEmpty ? fields[11] : nil
+                
                 let serviceRecordExport = ServiceRecordExport(
                     id: UUID(),
                     vehicleId: vehicleExport?.id ?? UUID(),
@@ -368,8 +379,8 @@ struct SettingsView: View {
                     mileage: Int(fields.count > 8 ? fields[8] : "0") ?? 0,
                     date: fields.count > 9 ? dateFormatter.date(from: fields[9]) ?? Date() : Date(),
                     notes: fields.count > 10 ? fields[10] : "",
-                    provider: fields.count > 11 ? fields[11] : nil,
-                    cost: fields.count > 12 ? Double(fields[12]) : nil,
+                    provider: provider,
+                    cost: cost,
                     createdAt: nil
                 )
                 serviceRecords.append(serviceRecordExport)
@@ -590,10 +601,10 @@ struct VehicleExport: Codable {
     let year: Int
     let vin: String?
     let currentMileage: Int
-    let oilChangeInterval: Int
-    let oilWeight: String
-    let oilQuantity: String
-    let oilFilterPartNumber: String
+    let oilChangeInterval: Int?
+    let oilWeight: String?
+    let oilQuantity: String?
+    let oilFilterPartNumber: String?
     let createdAt: Date
     let photos: [VehiclePhotoExport]
     
@@ -618,7 +629,7 @@ struct VehicleExport: Codable {
     }
     
     // Initializer for CSV import
-    init(id: UUID, make: String, model: String, year: Int, vin: String?, currentMileage: Int, oilChangeInterval: Int, oilWeight: String, oilQuantity: String, oilFilterPartNumber: String, photos: [VehiclePhotoExport], createdAt: Date?) {
+    init(id: UUID, make: String, model: String, year: Int, vin: String?, currentMileage: Int, oilChangeInterval: Int?, oilWeight: String?, oilQuantity: String?, oilFilterPartNumber: String?, photos: [VehiclePhotoExport], createdAt: Date?) {
         self.id = id
         self.make = make
         self.model = model
