@@ -24,6 +24,8 @@ struct SettingsView: View {
     @State private var shareItems: [Any] = []
     @State private var alertMessage = ""
     @State private var showingAlert = false
+    @State private var showingExportFormatPicker = false
+    @State private var exportIncludePhotos = true
     
     // Statistics
     private var vehicleCount: Int { vehicles.count }
@@ -45,13 +47,15 @@ struct SettingsView: View {
                 // Backup & Restore Section
                 Section("Backup & Restore") {
                     Button {
-                        exportData(includePhotos: true)
+                        exportIncludePhotos = true
+                        showingExportFormatPicker = true
                     } label: {
                         Label("Export All Data", systemImage: "square.and.arrow.up")
                     }
                     
                     Button {
-                        exportData(includePhotos: false)
+                        exportIncludePhotos = false
+                        showingExportFormatPicker = true
                     } label: {
                         Label("Export Without Photos", systemImage: "square.and.arrow.up.on.square")
                     }
@@ -132,6 +136,18 @@ struct SettingsView: View {
         } message: {
             Text(alertMessage)
         }
+        // Export format picker
+        .sheet(isPresented: $showingExportFormatPicker) {
+            ExportFormatPicker(
+                includePhotos: exportIncludePhotos,
+                onJSONSelected: {
+                    exportData(format: .json, includePhotos: exportIncludePhotos)
+                },
+                onCSVSelected: {
+                    exportData(format: .csv, includePhotos: exportIncludePhotos)
+                }
+            )
+        }
     }
     
     // MARK: - Share Sheet Presentation
@@ -163,28 +179,45 @@ struct SettingsView: View {
     
     // MARK: - Export Functionality
     
-    private func exportData(includePhotos: Bool) {
+    enum ExportFormat {
+        case json
+        case csv
+    }
+    
+    private func exportData(format: ExportFormat, includePhotos: Bool) {
         // Show loading indicator or perform on background thread
         Task {
             do {
-                let exportData = ExportData(
-                    vehicles: vehicles.map { VehicleExport(from: $0, includePhotos: includePhotos) },
-                    serviceRecords: services.map { ServiceRecordExport(from: $0) },
-                    upcomingServices: upcoming.map { UpcomingServiceExport(from: $0) },
-                    exportDate: Date(),
-                    version: "1.0"
-                )
+                let data: Data
+                let fileExtension: String
+                let fileName: String
                 
-                let encoder = JSONEncoder()
-                encoder.dateEncodingStrategy = .iso8601
-                encoder.outputFormatting = .prettyPrinted
-                
-                let data = try encoder.encode(exportData)
+                switch format {
+                case .json:
+                    let exportData = ExportData(
+                        vehicles: vehicles.map { VehicleExport(from: $0, includePhotos: includePhotos) },
+                        serviceRecords: services.map { ServiceRecordExport(from: $0) },
+                        upcomingServices: upcoming.map { UpcomingServiceExport(from: $0) },
+                        exportDate: Date(),
+                        version: "1.0"
+                    )
+                    
+                    let encoder = JSONEncoder()
+                    encoder.dateEncodingStrategy = .iso8601
+                    encoder.outputFormatting = .prettyPrinted
+                    data = try encoder.encode(exportData)
+                    fileExtension = "json"
+                    fileName = "CarServiceBackup_\(Date().timeIntervalSince1970).json"
+                    
+                case .csv:
+                    data = try generateCSV(includePhotos: includePhotos)
+                    fileExtension = "csv"
+                    fileName = "CarServiceExport_\(Date().timeIntervalSince1970).csv"
+                }
                 
                 // Save to temporary directory
                 let tempURL = FileManager.default.temporaryDirectory
-                    .appendingPathComponent("CarServiceBackup_\(Date().timeIntervalSince1970)")
-                    .appendingPathExtension("json")
+                    .appendingPathComponent(fileName)
                 
                 try data.write(to: tempURL)
                 
@@ -200,6 +233,35 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+    
+    // Generate CSV data from vehicles and services
+    private func generateCSV(includePhotos: Bool) throws -> Data {
+        var csvLines: [String] = []
+        
+        // CSV Header
+        csvLines.append("Type,Vehicle Name,Make,Model,Year,VIN,Current Mileage,Service Type,Service Mileage,Service Date,Notes,Provider,Cost")
+        
+        // Add vehicle rows
+        for vehicle in vehicles {
+            csvLines.append("Vehicle,\(vehicle.displayName),\(vehicle.make),\(vehicle.model),\(vehicle.year),\(vehicle.vin ?? ""),\(vehicle.currentMileage),,,,,,")
+        }
+        
+        // Add service record rows
+        for service in services {
+            let vehicleName = service.vehicle?.displayName ?? "Unknown"
+            let costString = service.cost?.description ?? ""
+            let dateString = ISO8601DateFormatter().string(from: service.date)
+            
+            csvLines.append("Service,\(vehicleName),\(service.vehicle?.make ?? ""),\(service.vehicle?.model ?? ""),\(service.vehicle?.year ?? 0),\(service.vehicle?.vin ?? ""),,\(service.serviceType.displayName),\(service.mileage),\(dateString),\"\(service.notes.replacingOccurrences(of: "\"", with: "\"\""))\",\(service.provider ?? ""),\(costString)")
+        }
+        
+        let csvString = csvLines.joined(separator: "\n")
+        guard let data = csvString.data(using: .utf8) else {
+            throw NSError(domain: "CSVGeneration", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to convert CSV string to data"])
+        }
+        
+        return data
     }
     
     // MARK: - Import Functionality
@@ -346,6 +408,60 @@ struct StatRow: View {
             Text("\(value)")
                 .font(.headline)
                 .foregroundColor(color)
+        }
+    }
+}
+
+// MARK: - Export Format Picker
+struct ExportFormatPicker: View {
+    @Environment(\.dismiss) private var dismiss
+    let includePhotos: Bool
+    let onJSONSelected: () -> Void
+    let onCSVSelected: () -> Void
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Button {
+                        onJSONSelected()
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Image(systemName: "doc.text")
+                                .foregroundColor(.blue)
+                            Text("JSON Format")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    
+                    Button {
+                        onCSVSelected()
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Image(systemName: "tablecells")
+                                .foregroundColor(.green)
+                            Text("CSV/Spreadsheet Format")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.green)
+                        }
+                    }
+                } header: {
+                    Text("Export Format")
+                } footer: {
+                    Text(includePhotos 
+                        ? "JSON preserves all data including photos. CSV is a spreadsheet-friendly format without photos." 
+                        : "JSON preserves all data structure. CSV is a spreadsheet-friendly format for easy viewing in Excel or Numbers.")
+                }
+            }
+            .navigationTitle("Choose Format")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
