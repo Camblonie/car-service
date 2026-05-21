@@ -153,7 +153,8 @@ struct SettingsView: View {
     // MARK: - Share Sheet Presentation
     
     // Present UIActivityViewController from the key window's root view controller
-    private func presentShareSheet() {
+    // Retries automatically if a sheet is currently being dismissed
+    private func presentShareSheet(attempt: Int = 0) {
         guard !shareItems.isEmpty,
               let windowScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
               let window = windowScene.windows.first(where: \.isKeyWindow),
@@ -162,9 +163,22 @@ struct SettingsView: View {
             return
         }
         
-        // Walk up the chain to find the topmost presented view controller
-        while let presented = topController.presentedViewController {
+        // Walk up the chain to find the topmost non-dismissing presented view controller
+        while let presented = topController.presentedViewController, !presented.isBeingDismissed {
             topController = presented
+        }
+        
+        // If the top controller is being dismissed or already presenting something, retry shortly
+        if topController.isBeingDismissed || topController.presentedViewController != nil {
+            // Cap retries at ~2 seconds to avoid infinite loops
+            if attempt < 20 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    presentShareSheet(attempt: attempt + 1)
+                }
+            } else {
+                showingShareSheet = false
+            }
+            return
         }
         
         let activityVC = UIActivityViewController(activityItems: shareItems, applicationActivities: nil)
