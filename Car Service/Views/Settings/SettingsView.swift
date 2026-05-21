@@ -104,7 +104,7 @@ struct SettingsView: View {
         // Import file picker
         .fileImporter(
             isPresented: $showingImportPicker,
-            allowedContentTypes: [.json],
+            allowedContentTypes: [.json, .commaSeparatedText],
             allowsMultipleSelection: false
         ) { result in
             handleImport(result: result)
@@ -279,13 +279,25 @@ struct SettingsView: View {
             
             do {
                 let data = try Data(contentsOf: url)
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
                 
-                let importedData = try decoder.decode(ExportData.self, from: data)
+                // Detect file type by extension or content
+                let fileExtension = url.pathExtension.lowercased()
                 
-                importData = importedData
-                showingImportConfirmation = true
+                if fileExtension == "csv" || fileExtension == "txt" {
+                    // Parse CSV
+                    let importedData = try parseCSV(data: data)
+                    importData = importedData
+                    showingImportConfirmation = true
+                } else {
+                    // Parse JSON
+                    let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .iso8601
+                    
+                    let importedData = try decoder.decode(ExportData.self, from: data)
+                    
+                    importData = importedData
+                    showingImportConfirmation = true
+                }
                 
             } catch {
                 alertMessage = "Import failed: \(error.localizedDescription)"
@@ -296,6 +308,104 @@ struct SettingsView: View {
             alertMessage = "Import failed: \(error.localizedDescription)"
             showingAlert = true
         }
+    }
+    
+    // Parse CSV data into ExportData
+    private func parseCSV(data: Data) throws -> ExportData {
+        guard let csvString = String(data: data, encoding: .utf8) else {
+            throw NSError(domain: "CSVImport", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to decode CSV data"])
+        }
+        
+        var lines = csvString.components(separatedBy: .newlines)
+        guard !lines.isEmpty else {
+            throw NSError(domain: "CSVImport", code: 0, userInfo: [NSLocalizedDescriptionKey: "CSV file is empty"])
+        }
+        
+        // Remove header row
+        let header = lines.removeFirst()
+        
+        var vehicles: [VehicleExport] = []
+        var serviceRecords: [ServiceRecordExport] = []
+        var vehicleMap: [String: VehicleExport] = [:] // Map vehicle name to export
+        
+        let dateFormatter = ISO8601DateFormatter()
+        
+        for line in lines {
+            if line.isEmpty { continue }
+            
+            // Parse CSV line handling quoted fields
+            let fields = parseCSVLine(line)
+            guard fields.count >= 2 else { continue }
+            
+            let type = fields[0]
+            
+            if type == "Vehicle" && fields.count >= 7 {
+                let vehicleExport = VehicleExport(
+                    id: UUID(),
+                    make: fields.count > 2 ? fields[2] : "",
+                    model: fields.count > 3 ? fields[3] : "",
+                    year: Int(fields.count > 4 ? fields[4] : "0") ?? 0,
+                    vin: fields.count > 5 ? fields[5] : nil,
+                    currentMileage: Int(fields.count > 6 ? fields[6] : "0") ?? 0,
+                    oilChangeInterval: nil,
+                    oilWeight: nil,
+                    oilQuantity: nil,
+                    oilFilterPartNumber: nil,
+                    photos: [],
+                    createdAt: nil
+                )
+                vehicles.append(vehicleExport)
+                vehicleMap[vehicleExport.displayName] = vehicleExport
+                
+            } else if type == "Service" && fields.count >= 10 {
+                let vehicleName = fields[1]
+                let vehicleExport = vehicleMap[vehicleName]
+                
+                let serviceRecordExport = ServiceRecordExport(
+                    id: UUID(),
+                    vehicleId: vehicleExport?.id ?? UUID(),
+                    serviceType: fields.count > 7 ? fields[7] : "other",
+                    mileage: Int(fields.count > 8 ? fields[8] : "0") ?? 0,
+                    date: fields.count > 9 ? dateFormatter.date(from: fields[9]) ?? Date() : Date(),
+                    notes: fields.count > 10 ? fields[10] : "",
+                    provider: fields.count > 11 ? fields[11] : nil,
+                    cost: fields.count > 12 ? Double(fields[12]) : nil,
+                    createdAt: nil
+                )
+                serviceRecords.append(serviceRecordExport)
+            }
+        }
+        
+        return ExportData(
+            vehicles: vehicles,
+            serviceRecords: serviceRecords,
+            upcomingServices: [],
+            exportDate: Date(),
+            version: "1.0"
+        )
+    }
+    
+    // Parse a single CSV line handling quoted fields
+    private func parseCSVLine(_ line: String) -> [String] {
+        var fields: [String] = []
+        var currentField = ""
+        var inQuotes = false
+        
+        for char in line {
+            if char == "\"" {
+                inQuotes.toggle()
+            } else if char == "," && !inQuotes {
+                fields.append(currentField.trimmingCharacters(in: .whitespaces))
+                currentField = ""
+            } else {
+                currentField.append(char)
+            }
+        }
+        
+        // Add the last field
+        fields.append(currentField.trimmingCharacters(in: .whitespaces))
+        
+        return fields
     }
     
     private func importData(data: ExportData, replace: Bool) {
