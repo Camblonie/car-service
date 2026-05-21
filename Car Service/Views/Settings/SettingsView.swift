@@ -356,7 +356,9 @@ struct SettingsView: View {
                     createdAt: nil
                 )
                 vehicles.append(vehicleExport)
-                vehicleMap[vehicleExport.displayName] = vehicleExport
+                // Map by display name composed from year/make/model to match vehicle name in service rows
+                let displayName = "\(vehicleExport.year) \(vehicleExport.make) \(vehicleExport.model)"
+                vehicleMap[displayName] = vehicleExport
                 
             } else if type == "Service" && fields.count >= 10 {
                 let vehicleName = fields[1]
@@ -435,10 +437,10 @@ struct SettingsView: View {
                 year: vehicleExport.year,
                 vin: vehicleExport.vin,
                 currentMileage: vehicleExport.currentMileage,
-                oilChangeInterval: vehicleExport.oilChangeInterval,
-                oilWeight: vehicleExport.oilWeight,
-                oilQuantity: vehicleExport.oilQuantity,
-                oilFilterPartNumber: vehicleExport.oilFilterPartNumber,
+                oilChangeInterval: vehicleExport.oilChangeInterval ?? 5000,
+                oilWeight: vehicleExport.oilWeight ?? "",
+                oilQuantity: vehicleExport.oilQuantity ?? "",
+                oilFilterPartNumber: vehicleExport.oilFilterPartNumber ?? "",
                 createdAt: vehicleExport.createdAt
             )
             
