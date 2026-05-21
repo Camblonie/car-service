@@ -19,6 +19,9 @@ struct VehicleListView: View {
     @State private var searchText = ""
     @State private var vehicleToDelete: Vehicle?
     @State private var showingDeleteConfirmation = false
+    @State private var showingMileageUpdate = false
+    @State private var vehicleToUpdateMileage: Vehicle?
+    @State private var newMileage = ""
     
     // Filtered vehicles based on search
     private var filteredVehicles: [Vehicle] {
@@ -66,6 +69,11 @@ struct VehicleListView: View {
             } message: { vehicle in
                 Text("This will permanently delete \(vehicle.displayName) and all its service records. This action cannot be undone.")
             }
+            .sheet(isPresented: $showingMileageUpdate) {
+                if let vehicle = vehicleToUpdateMileage {
+                    MileageUpdateSheet(vehicle: vehicle, newMileage: $newMileage, isPresented: $showingMileageUpdate)
+                }
+            }
         }
         .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: "Search vehicles")
     }
@@ -85,6 +93,15 @@ struct VehicleListView: View {
                         Label("Edit", systemImage: "pencil")
                     }
                     .tint(.blue)
+                    
+                    Button {
+                        vehicleToUpdateMileage = vehicle
+                        newMileage = "\(vehicle.currentMileage)"
+                        showingMileageUpdate = true
+                    } label: {
+                        Label("Mileage", systemImage: "speedometer")
+                    }
+                    .tint(.green)
                 }
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
@@ -174,6 +191,78 @@ struct VehicleCard: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Mileage Update Sheet
+struct MileageUpdateSheet: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    let vehicle: Vehicle
+    @Binding var newMileage: String
+    @Binding var isPresented: Bool
+    
+    private var isValid: Bool {
+        guard let mileageInt = Int(newMileage), mileageInt >= 0 else { return false }
+        return mileageInt >= vehicle.currentMileage
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Update mileage for \(vehicle.displayName)")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Section("Current Mileage") {
+                    Text("\(vehicle.currentMileage) mi")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                }
+                
+                Section("New Mileage") {
+                    TextField("Enter new mileage", text: $newMileage)
+                        .keyboardType(.numberPad)
+                }
+                
+                Section {
+                    Button(action: saveMileage) {
+                        HStack {
+                            Spacer()
+                            Label("Update Mileage", systemImage: "checkmark.circle.fill")
+                                .font(.headline)
+                            Spacer()
+                        }
+                    }
+                    .disabled(!isValid)
+                    .foregroundColor(isValid ? .blue : .gray)
+                }
+            }
+            .navigationTitle("Update Mileage")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveMileage()
+                    }
+                    .disabled(!isValid)
+                }
+            }
+        }
+    }
+    
+    private func saveMileage() {
+        guard let mileageInt = Int(newMileage), mileageInt >= vehicle.currentMileage else { return }
+        
+        vehicle.currentMileage = mileageInt
+        dismiss()
     }
 }
 
