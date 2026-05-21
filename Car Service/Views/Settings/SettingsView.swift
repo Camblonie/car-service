@@ -16,12 +16,10 @@ struct SettingsView: View {
     @Query private var photos: [VehiclePhoto]
     @Query private var upcoming: [UpcomingService]
     
-    @State private var showingExportSheet = false
     @State private var showingImportPicker = false
     @State private var showingImportConfirmation = false
     @State private var showingClearConfirmation = false
     @State private var importData: ExportData?
-    @State private var exportURL: URL?
     @State private var showingShareSheet = false
     @State private var shareItems: [Any] = []
     @State private var alertMessage = ""
@@ -55,8 +53,7 @@ struct SettingsView: View {
                     Button {
                         exportData(includePhotos: false)
                     } label: {
-                        Label("Export Without Photos", systemImage: "square.and.arrow.up")
-                            .foregroundColor(.secondary)
+                        Label("Export Without Photos", systemImage: "square.and.arrow.up.on.square")
                     }
                     
                     Button {
@@ -94,10 +91,12 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
         }
-        // Export file presentation
-        .background(
-            ShareSheetPresenter(isPresented: $showingShareSheet, items: shareItems)
-        )
+        // Trigger share sheet presentation when ready
+        .onChange(of: showingShareSheet) { _, newValue in
+            if newValue {
+                presentShareSheet()
+            }
+        }
         // Import file picker
         .fileImporter(
             isPresented: $showingImportPicker,
@@ -133,6 +132,33 @@ struct SettingsView: View {
         } message: {
             Text(alertMessage)
         }
+    }
+    
+    // MARK: - Share Sheet Presentation
+    
+    // Present UIActivityViewController from the key window's root view controller
+    private func presentShareSheet() {
+        guard !shareItems.isEmpty,
+              let windowScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+              let window = windowScene.windows.first(where: \.isKeyWindow),
+              var topController = window.rootViewController else {
+            showingShareSheet = false
+            return
+        }
+        
+        // Walk up the chain to find the topmost presented view controller
+        while let presented = topController.presentedViewController {
+            topController = presented
+        }
+        
+        let activityVC = UIActivityViewController(activityItems: shareItems, applicationActivities: nil)
+        activityVC.completionWithItemsHandler = { _, _, _, _ in
+            DispatchQueue.main.async {
+                showingShareSheet = false
+            }
+        }
+        
+        topController.present(activityVC, animated: true)
     }
     
     // MARK: - Export Functionality
@@ -322,50 +348,6 @@ struct StatRow: View {
                 .foregroundColor(color)
         }
     }
-}
-
-// MARK: - Share Sheet Presenter
-struct ShareSheetPresenter: UIViewControllerRepresentable {
-    @Binding var isPresented: Bool
-    let items: [Any]
-    
-    func makeUIViewController(context: Context) -> UIViewController {
-        let controller = UIViewController()
-        controller.view.backgroundColor = .clear
-        
-        DispatchQueue.main.async {
-            presentShareSheet(from: controller)
-        }
-        
-        return controller
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-    
-    private func presentShareSheet(from controller: UIViewController) {
-        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        activityVC.completionWithItemsHandler = { _, _, _, _ in
-            DispatchQueue.main.async {
-                isPresented = false
-            }
-        }
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(activityVC, animated: true)
-        }
-    }
-}
-
-// MARK: - Share Sheet
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Export Data Structures
