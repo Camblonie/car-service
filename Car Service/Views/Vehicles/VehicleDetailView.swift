@@ -16,6 +16,9 @@ struct VehicleDetailView: View {
     
     @State private var showingEditSheet = false
     @State private var showingDeleteConfirmation = false
+    // Quick mileage update state
+    @State private var showingMileageUpdate = false
+    @State private var newMileage = ""
     
     // Get service records sorted by mileage
     private var serviceRecords: [ServiceRecord] {
@@ -77,16 +80,29 @@ struct VehicleDetailView: View {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
             
-            // Current Mileage
+            // Current Mileage - tap row to update without using Edit
             Section("Current Mileage") {
-                HStack {
-                    Image(systemName: "speedometer")
-                        .foregroundColor(.blue)
-                        .font(.title2)
-                    Text("\(vehicle.currentMileage) miles")
-                        .font(.title3)
+                Button {
+                    newMileage = "\(vehicle.currentMileage)"
+                    showingMileageUpdate = true
+                } label: {
+                    HStack {
+                        Image(systemName: "speedometer")
+                            .foregroundColor(.blue)
+                            .font(.title2)
+                        Text("\(vehicle.currentMileage) miles")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        // Pencil hint indicates the row is tappable for editing
+                        Image(systemName: "pencil.circle.fill")
+                            .foregroundColor(.blue)
+                            .font(.title2)
+                    }
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
                 }
-                .padding(.vertical, 4)
+                .buttonStyle(.plain)
             }
             
             // Oil Change Status
@@ -214,6 +230,10 @@ struct VehicleDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showingEditSheet) {
             AddEditVehicleView(vehicle: vehicle)
+        }
+        // Quick mileage update sheet (reuses the one defined in VehicleListView)
+        .sheet(isPresented: $showingMileageUpdate) {
+            MileageUpdateSheet(vehicle: vehicle, newMileage: $newMileage, isPresented: $showingMileageUpdate)
         }
         .alert("Delete Vehicle?", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
