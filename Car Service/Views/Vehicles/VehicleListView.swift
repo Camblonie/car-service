@@ -12,7 +12,6 @@ struct VehicleListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Vehicle.make) private var vehicles: [Vehicle]
     
-    @Binding var selectedVehicle: Vehicle?
     @State private var showingAddVehicle = false
     @State private var showingEditVehicle = false
     @State private var vehicleToEdit: Vehicle?
@@ -86,7 +85,6 @@ struct VehicleListView: View {
                 NavigationLink(value: vehicle) {
                     VehicleCard(
                         vehicle: vehicle,
-                        isSelected: selectedVehicle?.id == vehicle.id,
                         onMileageUpdate: {
                             vehicleToUpdateMileage = vehicle
                             newMileage = "\(vehicle.currentMileage)"
@@ -123,9 +121,6 @@ struct VehicleListView: View {
                         Label("Delete", systemImage: "trash")
                     }
                 }
-                .onTapGesture {
-                    selectedVehicle = vehicle
-                }
             }
         }
         .listStyle(.plain)
@@ -145,16 +140,12 @@ struct VehicleListView: View {
     // Delete vehicle and all related data
     private func deleteVehicle(_ vehicle: Vehicle) {
         modelContext.delete(vehicle)
-        if selectedVehicle?.id == vehicle.id {
-            selectedVehicle = vehicles.first { $0.id != vehicle.id }
-        }
     }
 }
 
 // MARK: - Vehicle Card
 struct VehicleCard: View {
     let vehicle: Vehicle
-    let isSelected: Bool
     let onMileageUpdate: () -> Void
     let onLongPress: () -> Void
     
@@ -221,11 +212,6 @@ struct VehicleCard: View {
                     )
             }
             .buttonStyle(.plain)
-            
-            if isSelected {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.blue)
-            }
         }
         .padding(.vertical, 4)
         .background(
@@ -357,7 +343,7 @@ struct EmptyVehicleView: View {
 }
 
 #Preview {
-    VehicleListView(selectedVehicle: .constant(nil))
+    VehicleListView()
         .modelContainer(for: [Vehicle.self, ServiceRecord.self, VehiclePhoto.self, UpcomingService.self], inMemory: true)
 }
 
@@ -365,13 +351,11 @@ struct EmptyVehicleView: View {
     VStack {
         VehicleCard(
             vehicle: Vehicle(make: "Toyota", model: "Camry", year: 2020, currentMileage: 50000),
-            isSelected: true,
             onMileageUpdate: {},
             onLongPress: {}
         )
         VehicleCard(
             vehicle: Vehicle(make: "Honda", model: "Civic", year: 2021, currentMileage: 30000),
-            isSelected: false,
             onMileageUpdate: {},
             onLongPress: {}
         )

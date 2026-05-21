@@ -2,7 +2,8 @@
 //  ContentView.swift
 //  Car Service
 //
-//  Main tab view with 4 tabs: Vehicles, Services, Dashboard, Settings
+//  Main tab view with 3 tabs: Vehicles, Dashboard, Settings
+//  Service history & adding services are accessed from the Vehicle Detail view
 //
 
 import SwiftUI
@@ -13,40 +14,34 @@ struct ContentView: View {
     @Query(sort: \Vehicle.make) private var vehicles: [Vehicle]
     
     @State private var selectedTab = 0
+    // Tracks the vehicle shown in the Dashboard tab; defaults to first vehicle
     @State private var selectedVehicle: Vehicle?
     
     var body: some View {
         TabView(selection: $selectedTab) {
             // Tab 1: Vehicles
-            VehicleListView(selectedVehicle: $selectedVehicle)
+            VehicleListView()
                 .tabItem {
                     Label("Vehicles", systemImage: "car.fill")
                 }
                 .tag(0)
             
-            // Tab 2: Services
-            ServiceHistoryView(selectedVehicle: selectedVehicle)
-                .tabItem {
-                    Label("Services", systemImage: "list.bullet.clipboard")
-                }
-                .tag(1)
-            
-            // Tab 3: Dashboard
+            // Tab 2: Dashboard
             DashboardView(selectedVehicle: selectedVehicle)
                 .tabItem {
                     Label("Dashboard", systemImage: "gauge.with.dots.needle.67percent")
                 }
-                .tag(2)
+                .tag(1)
             
-            // Tab 4: Settings
+            // Tab 3: Settings
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
-                .tag(3)
+                .tag(2)
         }
         .onAppear {
-            // Select first vehicle by default if available
+            // Default Dashboard to the first vehicle if available
             if selectedVehicle == nil, let firstVehicle = vehicles.first {
                 selectedVehicle = firstVehicle
             }
