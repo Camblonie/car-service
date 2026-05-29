@@ -21,7 +21,6 @@ struct VehicleListView: View {
     @State private var showingMileageUpdate = false
     @State private var vehicleToUpdateMileage: Vehicle?
     @State private var newMileage = ""
-    @State private var navigateToVehicle: Vehicle?
     
     // Filtered vehicles based on search
     private var filteredVehicles: [Vehicle] {
@@ -89,9 +88,6 @@ struct VehicleListView: View {
                             vehicleToUpdateMileage = vehicle
                             newMileage = "\(vehicle.currentMileage)"
                             showingMileageUpdate = true
-                        },
-                        onLongPress: {
-                            navigateToVehicle = vehicle
                         }
                     )
                 }
@@ -127,14 +123,6 @@ struct VehicleListView: View {
         .navigationDestination(for: Vehicle.self) { vehicle in
             VehicleDetailView(vehicle: vehicle)
         }
-        .navigationDestination(isPresented: Binding(
-            get: { navigateToVehicle != nil },
-            set: { if !$0 { navigateToVehicle = nil } }
-        )) {
-            if let vehicle = navigateToVehicle {
-                VehicleDetailView(vehicle: vehicle)
-            }
-        }
     }
     
     // Delete vehicle and all related data
@@ -147,9 +135,6 @@ struct VehicleListView: View {
 struct VehicleCard: View {
     let vehicle: Vehicle
     let onMileageUpdate: () -> Void
-    let onLongPress: () -> Void
-    
-    @State private var isPressed = false
     
     var body: some View {
         HStack(spacing: 12) {
@@ -220,21 +205,6 @@ struct VehicleCard: View {
             .buttonStyle(.plain)
         }
         .padding(.vertical, 4)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isPressed ? Color.blue.opacity(0.1) : Color.clear)
-        )
-        .onLongPressGesture(
-            minimumDuration: 0.3,
-            pressing: { pressing in
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isPressed = pressing
-                }
-            },
-            perform: {
-                onLongPress()
-            }
-        )
     }
 }
 
