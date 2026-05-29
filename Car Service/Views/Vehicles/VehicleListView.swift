@@ -327,13 +327,11 @@ struct EmptyVehicleView: View {
     VStack {
         VehicleCard(
             vehicle: Vehicle(make: "Toyota", model: "Camry", year: 2020, currentMileage: 50000),
-            onMileageUpdate: {},
-            onLongPress: {}
+            onMileageUpdate: {}
         )
         VehicleCard(
             vehicle: Vehicle(make: "Honda", model: "Civic", year: 2021, currentMileage: 30000),
-            onMileageUpdate: {},
-            onLongPress: {}
+            onMileageUpdate: {}
         )
     }
     .padding()

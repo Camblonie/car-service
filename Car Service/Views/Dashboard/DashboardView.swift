@@ -261,6 +261,6 @@ struct EmptyDashboardView: View {
 }
 
 #Preview {
-    DashboardView(selectedVehicle: nil)
+    DashboardView()
         .modelContainer(for: [Vehicle.self, ServiceRecord.self, VehiclePhoto.self, UpcomingService.self], inMemory: true)
 }
