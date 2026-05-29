@@ -12,7 +12,6 @@ struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Vehicle.make) private var vehicles: [Vehicle]
     
-    let selectedVehicle: Vehicle?
     
     var body: some View {
         NavigationStack {
@@ -31,7 +30,7 @@ struct DashboardView: View {
     private var dashboardList: some View {
         List {
             ForEach(vehicles) { vehicle in
-                DashboardVehicleCard(vehicle: vehicle, isSelected: selectedVehicle?.id == vehicle.id)
+                DashboardVehicleCard(vehicle: vehicle)
             }
         }
         .listStyle(.plain)
@@ -41,7 +40,6 @@ struct DashboardView: View {
 // MARK: - Dashboard Vehicle Card
 struct DashboardVehicleCard: View {
     let vehicle: Vehicle
-    let isSelected: Bool
     
     // Get upcoming (non-completed) services for this vehicle
     private var upcomingServices: [UpcomingService] {
@@ -126,10 +124,6 @@ struct DashboardVehicleCard: View {
                 
                 Spacer()
                 
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
-                }
             }
             
             Divider()
@@ -194,7 +188,6 @@ struct DashboardVehicleCard: View {
             }
         }
         .padding(.vertical, 8)
-        .background(isSelected ? Color.blue.opacity(0.05) : Color.clear)
     }
 }
 

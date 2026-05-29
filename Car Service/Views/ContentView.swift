@@ -7,15 +7,9 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Vehicle.make) private var vehicles: [Vehicle]
-    
     @State private var selectedTab = 0
-    // Tracks the vehicle shown in the Dashboard tab; defaults to first vehicle
-    @State private var selectedVehicle: Vehicle?
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -27,7 +21,7 @@ struct ContentView: View {
                 .tag(0)
             
             // Tab 2: Dashboard
-            DashboardView(selectedVehicle: selectedVehicle)
+            DashboardView()
                 .tabItem {
                     Label("Dashboard", systemImage: "gauge.with.dots.needle.67percent")
                 }
@@ -39,12 +33,6 @@ struct ContentView: View {
                     Label("Settings", systemImage: "gear")
                 }
                 .tag(2)
-        }
-        .onAppear {
-            // Default Dashboard to the first vehicle if available
-            if selectedVehicle == nil, let firstVehicle = vehicles.first {
-                selectedVehicle = firstVehicle
-            }
         }
     }
 }
