@@ -54,20 +54,7 @@ struct AddEditVehicleView: View {
         NavigationStack {
             Form {
                 // Basic Info Section
-                Section("Vehicle Information") {
-                    TextField("Make (e.g., Toyota)", text: $make)
-                    TextField("Model (e.g., Camry)", text: $model)
-                    TextField("Year", text: $year)
-                        .keyboardType(.numberPad)
-                    TextField("VIN (Optional)", text: $vin)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.characters)
-                    
-                    let licensePlateField = TextField("License Plate (Optional)", text: $licensePlate)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.allCharacters)
-                    licensePlateField
-                }
+                vehicleInfoSection
                 
                 // Mileage Section
                 Section("Mileage") {
@@ -129,6 +116,23 @@ struct AddEditVehicleView: View {
             .onChange(of: selectedPhotoItems) { _, newItems in
                 loadPhotos(from: newItems)
             }
+        }
+    }
+    
+    // Vehicle info form section extracted to reduce type-checker complexity
+    @ViewBuilder
+    private var vehicleInfoSection: some View {
+        Section("Vehicle Information") {
+            TextField("Make (e.g., Toyota)", text: $make)
+            TextField("Model (e.g., Camry)", text: $model)
+            TextField("Year", text: $year)
+                .keyboardType(.numberPad)
+            TextField("VIN (Optional)", text: $vin)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.characters)
+            TextField("License Plate (Optional)", text: $licensePlate)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.allCharacters)
         }
     }
     
