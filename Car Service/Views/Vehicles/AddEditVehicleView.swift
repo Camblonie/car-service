@@ -132,7 +132,7 @@ struct AddEditVehicleView: View {
                 .textInputAutocapitalization(.characters)
             TextField("License Plate (Optional)", text: $licensePlate)
                 .autocorrectionDisabled()
-                .textInputAutocapitalization(.allCharacters)
+                .textInputAutocapitalization(.characters)
         }
     }
     
