@@ -62,9 +62,11 @@ struct AddEditVehicleView: View {
                     TextField("VIN (Optional)", text: $vin)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.characters)
-                    TextField("License Plate (Optional)", text: $licensePlate)
+                    
+                    let licensePlateField = TextField("License Plate (Optional)", text: $licensePlate)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.allCharacters)
+                    licensePlateField
                 }
                 
                 // Mileage Section

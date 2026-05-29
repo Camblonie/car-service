@@ -336,7 +336,7 @@ struct SettingsView: View {
         }
         
         // Remove header row
-        let header = lines.removeFirst()
+        _ = lines.removeFirst()
         
         var vehicles: [VehicleExport] = []
         var serviceRecords: [ServiceRecordExport] = []
