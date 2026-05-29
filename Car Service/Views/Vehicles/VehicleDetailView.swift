@@ -73,6 +73,13 @@ struct VehicleDetailView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
+                    
+                    // License Plate if available
+                    if let licensePlate = vehicle.licensePlate, !licensePlate.isEmpty {
+                        Text("License Plate: \(licensePlate)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 .padding(.vertical)
                 .frame(maxWidth: .infinity)

@@ -196,6 +196,12 @@ struct VehicleCard: View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+                
+                if let licensePlate = vehicle.licensePlate, !licensePlate.isEmpty {
+                    Text("Plate: \(licensePlate)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
             
             Spacer()
