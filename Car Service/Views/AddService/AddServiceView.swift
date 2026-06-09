@@ -183,10 +183,13 @@ struct AddServiceView: View {
         
         let costDecimal = Decimal(string: cost)
         
+        // Strip time-of-day — store date as month/day/year only
+        let dateOnly = Calendar.current.startOfDay(for: date)
+        
         let serviceRecord = ServiceRecord(
             serviceType: selectedServiceType,
             mileage: mileageInt,
-            date: date,
+            date: dateOnly,
             notes: notes,
             provider: provider.isEmpty ? nil : provider,
             cost: costDecimal,
@@ -349,10 +352,13 @@ struct AddServiceSheet: View {
         
         let costDecimal = Decimal(string: cost)
         
+        // Strip time-of-day — store date as month/day/year only
+        let dateOnly = Calendar.current.startOfDay(for: date)
+        
         let serviceRecord = ServiceRecord(
             serviceType: selectedServiceType,
             mileage: mileageInt,
-            date: date,
+            date: dateOnly,
             notes: notes,
             provider: provider.isEmpty ? nil : provider,
             cost: costDecimal,

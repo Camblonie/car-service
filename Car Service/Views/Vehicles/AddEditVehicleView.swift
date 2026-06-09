@@ -19,6 +19,7 @@ struct AddEditVehicleView: View {
     @State private var model = ""
     @State private var year = ""
     @State private var vin = ""
+    @State private var licensePlate = ""
     @State private var currentMileage = ""
     @State private var oilChangeInterval = "5000"
     @State private var oilWeight = ""
@@ -39,6 +40,7 @@ struct AddEditVehicleView: View {
             _model = State(initialValue: vehicle.model)
             _year = State(initialValue: String(vehicle.year))
             _vin = State(initialValue: vehicle.vin ?? "")
+            _licensePlate = State(initialValue: vehicle.licensePlate ?? "")
             _currentMileage = State(initialValue: String(vehicle.currentMileage))
             _oilChangeInterval = State(initialValue: String(vehicle.oilChangeInterval))
             _oilWeight = State(initialValue: vehicle.oilWeight)
@@ -52,15 +54,7 @@ struct AddEditVehicleView: View {
         NavigationStack {
             Form {
                 // Basic Info Section
-                Section("Vehicle Information") {
-                    TextField("Make (e.g., Toyota)", text: $make)
-                    TextField("Model (e.g., Camry)", text: $model)
-                    TextField("Year", text: $year)
-                        .keyboardType(.numberPad)
-                    TextField("VIN (Optional)", text: $vin)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.characters)
-                }
+                vehicleInfoSection
                 
                 // Mileage Section
                 Section("Mileage") {
@@ -125,6 +119,23 @@ struct AddEditVehicleView: View {
         }
     }
     
+    // Vehicle info form section extracted to reduce type-checker complexity
+    @ViewBuilder
+    private var vehicleInfoSection: some View {
+        Section("Vehicle Information") {
+            TextField("Make (e.g., Toyota)", text: $make)
+            TextField("Model (e.g., Camry)", text: $model)
+            TextField("Year", text: $year)
+                .keyboardType(.numberPad)
+            TextField("VIN (Optional)", text: $vin)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.characters)
+            TextField("License Plate (Optional)", text: $licensePlate)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.characters)
+        }
+    }
+    
     // Load photos from selected items
     private func loadPhotos(from items: [PhotosPickerItem]) {
         Task {
@@ -170,6 +181,7 @@ struct AddEditVehicleView: View {
             vehicle.model = model
             vehicle.year = yearInt
             vehicle.vin = vin.isEmpty ? nil : vin
+            vehicle.licensePlate = licensePlate.isEmpty ? nil : licensePlate
             vehicle.currentMileage = mileage
             vehicle.oilChangeInterval = interval
             vehicle.oilWeight = oilWeight
@@ -187,6 +199,7 @@ struct AddEditVehicleView: View {
                 model: model,
                 year: yearInt,
                 vin: vin.isEmpty ? nil : vin,
+                licensePlate: licensePlate.isEmpty ? nil : licensePlate,
                 currentMileage: mileage,
                 oilChangeInterval: interval,
                 oilWeight: oilWeight,

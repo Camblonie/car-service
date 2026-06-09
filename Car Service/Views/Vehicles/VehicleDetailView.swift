@@ -11,6 +11,7 @@ import SwiftData
 struct VehicleDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var appState: AppState
     
     let vehicle: Vehicle
     
@@ -19,6 +20,8 @@ struct VehicleDetailView: View {
     // Quick mileage update state
     @State private var showingMileageUpdate = false
     @State private var newMileage = ""
+    // Add service record state
+    @State private var showingAddService = false
     
     // Get service records sorted by mileage
     private var serviceRecords: [ServiceRecord] {
@@ -70,6 +73,13 @@ struct VehicleDetailView: View {
                     // VIN if available
                     if let vin = vehicle.vin, !vin.isEmpty {
                         Text("VIN: \(vin)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // License Plate if available
+                    if let licensePlate = vehicle.licensePlate, !licensePlate.isEmpty {
+                        Text("License Plate: \(licensePlate)")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -175,20 +185,44 @@ struct VehicleDetailView: View {
                         .foregroundColor(.secondary)
                 } else {
                     ForEach(serviceRecords.prefix(5)) { record in
-                        ServiceRecordRow(record: record)
+                        NavigationLink {
+                            ServiceRecordDetailView(record: record)
+                        } label: {
+                            ServiceRecordRow(record: record)
+                        }
                     }
                     
-                    if serviceRecords.count > 5 {
-                        Text("+ \(serviceRecords.count - 5) more records")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    // Link to History tab
+                    Button {
+                        dismiss()
+                        appState.selectedTab = 2
+                    } label: {
+                        Label("Link to history", systemImage: "list.bullet.clipboard")
+                            .font(.subheadline)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
             }
             
-            // Upcoming Maintenance Button
+            // Quick Actions
             Section {
+                // Add Service Record button
+                Button {
+                    showingAddService = true
+                } label: {
+                    HStack {
+                        Image(systemName: "wrench.and.screwdriver.fill")
+                            .foregroundColor(.green)
+                        Text("Add Service Record")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                    }
+                }
+                .buttonStyle(.plain)
+                
+                // Upcoming Maintenance nav link
                 NavigationLink {
                     UpcomingServiceView(vehicle: vehicle)
                 } label: {
@@ -234,6 +268,10 @@ struct VehicleDetailView: View {
         // Quick mileage update sheet (reuses the one defined in VehicleListView)
         .sheet(isPresented: $showingMileageUpdate) {
             MileageUpdateSheet(vehicle: vehicle, newMileage: $newMileage, isPresented: $showingMileageUpdate)
+        }
+        // Add service record sheet
+        .sheet(isPresented: $showingAddService) {
+            AddServiceSheet(vehicle: vehicle)
         }
         .alert("Delete Vehicle?", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
