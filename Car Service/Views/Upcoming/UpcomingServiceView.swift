@@ -104,11 +104,11 @@ struct UpcomingServiceView: View {
     
     // Complete the service and create a record
     private func completeService(_ service: UpcomingService) {
-        // Create service record
+        // Create service record — strip time-of-day, store month/day/year only
         let record = ServiceRecord(
             serviceType: service.serviceType,
             mileage: vehicle.currentMileage,
-            date: Date(),
+            date: Calendar.current.startOfDay(for: Date()),
             notes: "Completed from upcoming: \(service.notes)",
             vehicle: vehicle
         )

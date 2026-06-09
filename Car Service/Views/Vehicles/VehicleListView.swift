@@ -21,7 +21,8 @@ struct VehicleListView: View {
     @State private var showingMileageUpdate = false
     @State private var vehicleToUpdateMileage: Vehicle?
     @State private var newMileage = ""
-    @State private var navigateToVehicle: Vehicle?
+    @State private var showingAddService = false
+    @State private var vehicleToAddService: Vehicle?
     
     // Filtered vehicles based on search
     private var filteredVehicles: [Vehicle] {
@@ -74,6 +75,11 @@ struct VehicleListView: View {
                     MileageUpdateSheet(vehicle: vehicle, newMileage: $newMileage, isPresented: $showingMileageUpdate)
                 }
             }
+            .sheet(isPresented: $showingAddService) {
+                if let vehicle = vehicleToAddService {
+                    AddServiceSheet(vehicle: vehicle)
+                }
+            }
         }
         .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: "Search vehicles")
     }
@@ -90,8 +96,9 @@ struct VehicleListView: View {
                             newMileage = "\(vehicle.currentMileage)"
                             showingMileageUpdate = true
                         },
-                        onLongPress: {
-                            navigateToVehicle = vehicle
+                        onAddService: {
+                            vehicleToAddService = vehicle
+                            showingAddService = true
                         }
                     )
                 }
@@ -127,14 +134,6 @@ struct VehicleListView: View {
         .navigationDestination(for: Vehicle.self) { vehicle in
             VehicleDetailView(vehicle: vehicle)
         }
-        .navigationDestination(isPresented: Binding(
-            get: { navigateToVehicle != nil },
-            set: { if !$0 { navigateToVehicle = nil } }
-        )) {
-            if let vehicle = navigateToVehicle {
-                VehicleDetailView(vehicle: vehicle)
-            }
-        }
     }
     
     // Delete vehicle and all related data
@@ -147,9 +146,7 @@ struct VehicleListView: View {
 struct VehicleCard: View {
     let vehicle: Vehicle
     let onMileageUpdate: () -> Void
-    let onLongPress: () -> Void
-    
-    @State private var isPressed = false
+    let onAddService: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {
@@ -178,7 +175,7 @@ struct VehicleCard: View {
                     .font(.headline)
                 
                 HStack {
-                    Label("\(vehicle.currentMileage) mi", systemImage: "speedometer")
+                    Text("\(vehicle.currentMileage) mi")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -196,39 +193,38 @@ struct VehicleCard: View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+                
+                if let licensePlate = vehicle.licensePlate, !licensePlate.isEmpty {
+                    Text("Plate: \(licensePlate)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
             
             Spacer()
             
-            // Quick mileage update button
-            Button(action: onMileageUpdate) {
-                Image(systemName: "speedometer")
-                    .font(.system(size: 20))
-                    .foregroundColor(.blue)
-                    .frame(width: 36, height: 36)
-                    .background(
-                        Circle()
-                            .fill(Color.blue.opacity(0.1))
-                    )
+            // Quick action buttons: mileage update and add service
+            HStack(spacing: 8) {
+                Button(action: onMileageUpdate) {
+                    Image(systemName: "speedometer")
+                        .font(.system(size: 18))
+                        .foregroundColor(.blue)
+                        .frame(width: 34, height: 34)
+                        .background(Circle().fill(Color.blue.opacity(0.1)))
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: onAddService) {
+                    Image(systemName: "wrench.and.screwdriver.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.green)
+                        .frame(width: 34, height: 34)
+                        .background(Circle().fill(Color.green.opacity(0.1)))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .padding(.vertical, 4)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isPressed ? Color.blue.opacity(0.1) : Color.clear)
-        )
-        .onLongPressGesture(
-            minimumDuration: 0.3,
-            pressing: { pressing in
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isPressed = pressing
-                }
-            },
-            perform: {
-                onLongPress()
-            }
-        )
     }
 }
 
@@ -352,12 +348,12 @@ struct EmptyVehicleView: View {
         VehicleCard(
             vehicle: Vehicle(make: "Toyota", model: "Camry", year: 2020, currentMileage: 50000),
             onMileageUpdate: {},
-            onLongPress: {}
+            onAddService: {}
         )
         VehicleCard(
             vehicle: Vehicle(make: "Honda", model: "Civic", year: 2021, currentMileage: 30000),
             onMileageUpdate: {},
-            onLongPress: {}
+            onAddService: {}
         )
     }
     .padding()

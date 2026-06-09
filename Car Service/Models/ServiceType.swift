@@ -18,6 +18,8 @@ enum ServiceType: String, CaseIterable, Codable {
     case cabinFilter = "Cabin Filter"
     case coolantFlush = "Coolant Flush"
     case sparkPlugs = "Spark Plugs"
+    case differentialService = "Differential Service"
+    case battery = "Battery"
     case other = "Other"
     
     // Display name
@@ -46,6 +48,10 @@ enum ServiceType: String, CaseIterable, Codable {
             return "thermometer"
         case .sparkPlugs:
             return "bolt.fill"
+        case .differentialService:
+            return "gear.circle.fill"
+        case .battery:
+            return "battery.100"
         case .other:
             return "wrench.fill"
         }
@@ -68,6 +74,10 @@ enum ServiceType: String, CaseIterable, Codable {
             return .cyan
         case .sparkPlugs:
             return .yellow
+        case .differentialService:
+            return .brown
+        case .battery:
+            return .teal
         case .other:
             return .gray
         }
