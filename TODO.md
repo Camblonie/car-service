@@ -6,3 +6,4 @@
 - [x] Save license plate - added Oct 17, 2026
 - [ ] Add drain bolt size - added Oct 17, 2026
 - [ ] Allow user to choose current mileage from add service detail - added Oct 17, 2026
+- [ ] Add oil cap number or description  - added Oct 17, 2026
