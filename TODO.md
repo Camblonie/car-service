@@ -7,3 +7,4 @@
 - [ ] Add drain bolt size - added Oct 17, 2026
 - [ ] Allow user to choose current mileage from add service detail - added Oct 17, 2026
 - [ ] Add oil cap number or description  - added Oct 17, 2026
+- [ ] Allow user to modify a service that has already been saved - added Oct 17, 2026
