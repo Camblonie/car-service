@@ -338,8 +338,8 @@ struct AddServiceSheet: View {
                     TextField("Service Mileage", text: $mileage)
                         .keyboardType(.numberPad)
                     
-                    // Quick option to use the vehicle's recorded current mileage (only when adding)
-                    if !isEditing, mileage != String(vehicle.currentMileage) {
+                    // Quick option to use the vehicle's recorded current mileage
+                    if mileage != String(vehicle.currentMileage) {
                         Button {
                             mileage = String(vehicle.currentMileage)
                         } label: {
