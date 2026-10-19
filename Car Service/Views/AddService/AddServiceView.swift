@@ -117,7 +117,16 @@ struct AddServiceView: View {
                                 .foregroundColor(vehicle.oilFilterPartNumber.isEmpty ? .red : .primary)
                         }
                         
-                        if vehicle.oilWeight.isEmpty || vehicle.oilQuantity.isEmpty || vehicle.oilFilterPartNumber.isEmpty {
+                        HStack {
+                            Text("Drain Bolt Size:")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(vehicle.drainBoltSize.isEmpty ? "Not set" : vehicle.drainBoltSize)
+                                .fontWeight(.semibold)
+                                .foregroundColor(vehicle.drainBoltSize.isEmpty ? .red : .primary)
+                        }
+                        
+                        if vehicle.oilWeight.isEmpty || vehicle.oilQuantity.isEmpty || vehicle.oilFilterPartNumber.isEmpty || vehicle.drainBoltSize.isEmpty {
                             Text("⚠️ Update vehicle details to add missing oil specifications")
                                 .font(.caption)
                                 .foregroundColor(.orange)
@@ -311,6 +320,14 @@ struct AddServiceSheet: View {
                                     .foregroundColor(.secondary)
                                 Spacer()
                                 Text(vehicle.oilFilterPartNumber.isEmpty ? "Not set" : vehicle.oilFilterPartNumber)
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            HStack {
+                                Text("Drain Bolt Size:")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text(vehicle.drainBoltSize.isEmpty ? "Not set" : vehicle.drainBoltSize)
                                     .fontWeight(.semibold)
                             }
                         }

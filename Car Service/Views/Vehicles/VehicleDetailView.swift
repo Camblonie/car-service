@@ -174,6 +174,14 @@ struct VehicleDetailView: View {
                         Text(vehicle.oilFilterPartNumber.isEmpty ? "Not set" : vehicle.oilFilterPartNumber)
                             .fontWeight(.medium)
                     }
+                    
+                    HStack {
+                        Text("Drain Bolt Size:")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(vehicle.drainBoltSize.isEmpty ? "Not set" : vehicle.drainBoltSize)
+                            .fontWeight(.medium)
+                    }
                 }
                 .padding(.vertical, 4)
             }

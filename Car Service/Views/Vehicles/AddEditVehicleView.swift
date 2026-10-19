@@ -25,6 +25,7 @@ struct AddEditVehicleView: View {
     @State private var oilWeight = ""
     @State private var oilQuantity = ""
     @State private var oilFilterPartNumber = ""
+    @State private var drainBoltSize = ""
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @State private var photos: [VehiclePhoto] = []
     
@@ -46,6 +47,7 @@ struct AddEditVehicleView: View {
             _oilWeight = State(initialValue: vehicle.oilWeight)
             _oilQuantity = State(initialValue: vehicle.oilQuantity)
             _oilFilterPartNumber = State(initialValue: vehicle.oilFilterPartNumber)
+            _drainBoltSize = State(initialValue: vehicle.drainBoltSize)
             _photos = State(initialValue: vehicle.photos ?? [])
         }
     }
@@ -69,6 +71,7 @@ struct AddEditVehicleView: View {
                     TextField("Oil Weight (e.g., 5W-30)", text: $oilWeight)
                     TextField("Oil Quantity (e.g., 5.5 quarts)", text: $oilQuantity)
                     TextField("Oil Filter Part Number", text: $oilFilterPartNumber)
+                    TextField("Drain Bolt Size (e.g., 14 mm)", text: $drainBoltSize)
                 }
                 
                 // Photos Section
@@ -187,6 +190,7 @@ struct AddEditVehicleView: View {
             vehicle.oilWeight = oilWeight
             vehicle.oilQuantity = oilQuantity
             vehicle.oilFilterPartNumber = oilFilterPartNumber
+            vehicle.drainBoltSize = drainBoltSize
             
             // Associate photos
             for photo in photos {
@@ -204,7 +208,8 @@ struct AddEditVehicleView: View {
                 oilChangeInterval: interval,
                 oilWeight: oilWeight,
                 oilQuantity: oilQuantity,
-                oilFilterPartNumber: oilFilterPartNumber
+                oilFilterPartNumber: oilFilterPartNumber,
+                drainBoltSize: drainBoltSize
             )
             
             // Associate photos

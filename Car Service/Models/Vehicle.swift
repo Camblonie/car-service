@@ -21,6 +21,7 @@ final class Vehicle {
     var oilWeight: String
     var oilQuantity: String
     var oilFilterPartNumber: String
+    var drainBoltSize: String
     var createdAt: Date
     
     // Relationships
@@ -39,6 +40,7 @@ final class Vehicle {
         oilWeight: String = "",
         oilQuantity: String = "",
         oilFilterPartNumber: String = "",
+        drainBoltSize: String = "",
         createdAt: Date? = nil
     ) {
         self.id = UUID()
@@ -52,6 +54,7 @@ final class Vehicle {
         self.oilWeight = oilWeight
         self.oilQuantity = oilQuantity
         self.oilFilterPartNumber = oilFilterPartNumber
+        self.drainBoltSize = drainBoltSize
         self.createdAt = createdAt ?? Date()
         self.services = []
         self.photos = []
