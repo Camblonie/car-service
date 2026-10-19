@@ -226,13 +226,17 @@ struct AddServiceSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     let vehicle: Vehicle
+    let record: ServiceRecord?
     
-    @State private var selectedServiceType: ServiceType = .oilChange
-    @State private var mileage = ""
-    @State private var date = Date()
-    @State private var notes = ""
-    @State private var provider = ""
-    @State private var cost = ""
+    @State private var selectedServiceType: ServiceType
+    @State private var mileage: String
+    @State private var date: Date
+    @State private var notes: String
+    @State private var provider: String
+    @State private var cost: String
+    
+    // True when an existing record is being edited instead of creating a new one
+    private var isEditing: Bool { record != nil }
     
     private var isOilChange: Bool {
         selectedServiceType == .oilChange
@@ -240,7 +244,19 @@ struct AddServiceSheet: View {
     
     private var isValid: Bool {
         guard let mileageInt = Int(mileage), mileageInt >= 0 else { return false }
-        return mileageInt >= vehicle.currentMileage
+        // Editing allows corrections, so only enforce minimum current mileage when adding
+        return isEditing ? true : mileageInt >= vehicle.currentMileage
+    }
+    
+    init(vehicle: Vehicle, record: ServiceRecord? = nil) {
+        self.vehicle = vehicle
+        self.record = record
+        _selectedServiceType = State(initialValue: record?.serviceType ?? .oilChange)
+        _mileage = State(initialValue: record.map { String($0.mileage) } ?? "")
+        _date = State(initialValue: record?.date ?? Date())
+        _notes = State(initialValue: record?.notes ?? "")
+        _provider = State(initialValue: record?.provider ?? "")
+        _cost = State(initialValue: record.flatMap { $0.cost }.map { NSDecimalNumber(decimal: $0).stringValue } ?? "")
     }
     
     var body: some View {
@@ -319,7 +335,7 @@ struct AddServiceSheet: View {
                         .lineLimit(3...6)
                 }
             }
-            .navigationTitle("Add Service")
+            .navigationTitle(isEditing ? "Edit Service" : "Add Service")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -355,18 +371,29 @@ struct AddServiceSheet: View {
         // Strip time-of-day — store date as month/day/year only
         let dateOnly = Calendar.current.startOfDay(for: date)
         
-        let serviceRecord = ServiceRecord(
-            serviceType: selectedServiceType,
-            mileage: mileageInt,
-            date: dateOnly,
-            notes: notes,
-            provider: provider.isEmpty ? nil : provider,
-            cost: costDecimal,
-            vehicle: vehicle
-        )
+        if let record = record {
+            // Update the existing record with corrected values
+            record.serviceTypeRaw = selectedServiceType.rawValue
+            record.mileage = mileageInt
+            record.date = dateOnly
+            record.notes = notes
+            record.provider = provider.isEmpty ? nil : provider
+            record.cost = costDecimal
+        } else {
+            // Create and insert a new service record
+            let serviceRecord = ServiceRecord(
+                serviceType: selectedServiceType,
+                mileage: mileageInt,
+                date: dateOnly,
+                notes: notes,
+                provider: provider.isEmpty ? nil : provider,
+                cost: costDecimal,
+                vehicle: vehicle
+            )
+            modelContext.insert(serviceRecord)
+        }
         
-        modelContext.insert(serviceRecord)
-        
+        // Keep the vehicle's current mileage in sync if the service mileage increased
         if mileageInt > vehicle.currentMileage {
             vehicle.currentMileage = mileageInt
         }

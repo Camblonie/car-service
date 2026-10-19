@@ -15,6 +15,7 @@ struct ServiceRecordDetailView: View {
     let record: ServiceRecord
 
     @State private var showingDeleteConfirmation = false
+    @State private var showingEditSheet = false
 
     var body: some View {
         List {
@@ -88,6 +89,19 @@ struct ServiceRecordDetailView: View {
         }
         .navigationTitle("Service Record")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Edit") {
+                    showingEditSheet = true
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditSheet) {
+            if let vehicle = record.vehicle {
+                AddServiceSheet(vehicle: vehicle, record: record)
+                    .presentationDragIndicator(.visible)
+            }
+        }
         .alert("Delete Record?", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
