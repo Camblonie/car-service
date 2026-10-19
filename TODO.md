@@ -6,6 +6,6 @@
 - [x] Save license plate - added Oct 18, 2026
 - [ ] Add drain bolt size - added Oct 18, 2026
 - [ ] Allow user to choose current mileage from add service detail - added Oct 18, 2026
-- [ ] Add oil cap number or description and associate with particular filter - added Oct 18, 2026
+- [ ] Add oil cup number or description and associate with particular filter - added Oct 18, 2026
 - [ ] Allow user to modify a service that has already been saved - added Oct 18, 2026
 - [ ] Track law. Mower and snowblower and other oil changes - added Oct 18, 2026
