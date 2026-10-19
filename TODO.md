@@ -9,3 +9,4 @@
 - [ ] Add oil cup number or description and associate with particular filter - added Oct 18, 2026
 - [x] Allow user to modify a service that has already been saved - added Oct 18, 2026
 - [ ] Track law. Mower and snowblower and other oil changes - added Oct 18, 2026
+- [ ] The thumbnails on the main vehicle list are not updating with what is in the vehicle detail - added Oct 19, 2026
