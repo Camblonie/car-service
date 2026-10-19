@@ -133,6 +133,20 @@ struct AddServiceView: View {
                 TextField("Service Mileage", text: $mileage)
                     .keyboardType(.numberPad)
                 
+                // Quick option to use the vehicle's recorded current mileage
+                if let vehicle = selectedVehicle, mileage != String(vehicle.currentMileage) {
+                    Button {
+                        mileage = String(vehicle.currentMileage)
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Label("Use Current Mileage (\(vehicle.currentMileage) mi)", systemImage: "speedometer")
+                                .font(.subheadline)
+                            Spacer()
+                        }
+                    }
+                }
+                
                 DatePicker("Date", selection: $date, displayedComponents: .date)
                 
                 TextField("Service Provider (Optional)", text: $provider)
@@ -323,6 +337,20 @@ struct AddServiceSheet: View {
                 Section("Service Details") {
                     TextField("Service Mileage", text: $mileage)
                         .keyboardType(.numberPad)
+                    
+                    // Quick option to use the vehicle's recorded current mileage (only when adding)
+                    if !isEditing, mileage != String(vehicle.currentMileage) {
+                        Button {
+                            mileage = String(vehicle.currentMileage)
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Label("Use Current Mileage (\(vehicle.currentMileage) mi)", systemImage: "speedometer")
+                                    .font(.subheadline)
+                                Spacer()
+                            }
+                        }
+                    }
                     
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                     
