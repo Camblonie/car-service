@@ -42,8 +42,9 @@ struct AddEditVehicleView: View {
         }
     }
     private var isValid: Bool {
-        guard !make.isEmpty && !model.isEmpty else { return false }
+        guard !make.isEmpty else { return false }
         if isEquipment { return true }
+        guard !model.isEmpty else { return false }
         return !year.isEmpty && Int(year) != nil
     }
     
