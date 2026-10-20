@@ -22,11 +22,13 @@ struct AddEditVehicleView: View {
     @State private var vin = ""
     @State private var licensePlate = ""
     @State private var serialNumber = ""
+    @State private var engineHP = ""
     @State private var currentMileage = ""
     @State private var oilChangeInterval = "5000"
     @State private var oilWeight = ""
     @State private var oilQuantity = ""
     @State private var oilFilterPartNumber = ""
+    @State private var airFilterPartNumber = ""
     @State private var drainBoltSize = ""
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @State private var photos: [VehiclePhoto] = []
@@ -40,7 +42,9 @@ struct AddEditVehicleView: View {
         }
     }
     private var isValid: Bool {
-        !make.isEmpty && !model.isEmpty && !year.isEmpty && Int(year) != nil
+        guard !make.isEmpty && !model.isEmpty else { return false }
+        if isEquipment { return true }
+        return !year.isEmpty && Int(year) != nil
     }
     
     init(vehicle: Vehicle?, isEquipment: Bool = false) {
@@ -53,11 +57,13 @@ struct AddEditVehicleView: View {
             _vin = State(initialValue: vehicle.vin ?? "")
             _licensePlate = State(initialValue: vehicle.licensePlate ?? "")
             _serialNumber = State(initialValue: vehicle.serialNumber ?? "")
+            _engineHP = State(initialValue: vehicle.engineHP ?? "")
             _currentMileage = State(initialValue: String(vehicle.currentMileage))
             _oilChangeInterval = State(initialValue: String(vehicle.oilChangeInterval))
             _oilWeight = State(initialValue: vehicle.oilWeight)
             _oilQuantity = State(initialValue: vehicle.oilQuantity)
             _oilFilterPartNumber = State(initialValue: vehicle.oilFilterPartNumber)
+            _airFilterPartNumber = State(initialValue: vehicle.airFilterPartNumber ?? "")
             _drainBoltSize = State(initialValue: vehicle.drainBoltSize ?? "")
             _photos = State(initialValue: vehicle.photos ?? [])
         }
@@ -79,11 +85,16 @@ struct AddEditVehicleView: View {
                 
                 // Oil Change Section
                 Section("Oil Change Specifications") {
-                    TextField("Interval (miles)", text: $oilChangeInterval)
-                        .keyboardType(.numberPad)
+                    if !isEquipment {
+                        TextField("Interval (miles)", text: $oilChangeInterval)
+                            .keyboardType(.numberPad)
+                    }
                     TextField("Oil Weight (e.g., 5W-30)", text: $oilWeight)
                     TextField("Oil Quantity (e.g., 5.5 quarts)", text: $oilQuantity)
                     TextField("Oil Filter Part Number", text: $oilFilterPartNumber)
+                    if isEquipment {
+                        TextField("Air Filter Part Number", text: $airFilterPartNumber)
+                    }
                     TextField("Drain Bolt Size (e.g., 14 mm)", text: $drainBoltSize)
                 }
                 
@@ -141,20 +152,21 @@ struct AddEditVehicleView: View {
         Section(isEquipment ? "Equipment Information" : "Vehicle Information") {
             TextField("Make (e.g., Toyota)", text: $make)
             TextField("Model (e.g., Camry)", text: $model)
-            TextField("Year", text: $year)
-                .keyboardType(.numberPad)
             if isEquipment {
+                TextField("Engine HP", text: $engineHP)
                 TextField("Serial Number", text: $serialNumber)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.characters)
             } else {
+                TextField("Year", text: $year)
+                    .keyboardType(.numberPad)
                 TextField("VIN (Optional)", text: $vin)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.characters)
+                TextField("License Plate (Optional)", text: $licensePlate)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.characters)
             }
-            TextField("License Plate (Optional)", text: $licensePlate)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.characters)
         }
     }
     
@@ -203,14 +215,16 @@ struct AddEditVehicleView: View {
             vehicle.model = model
             vehicle.year = yearInt
             vehicle.vin = isEquipment ? nil : (vin.isEmpty ? nil : vin)
-            vehicle.licensePlate = licensePlate.isEmpty ? nil : licensePlate
+            vehicle.licensePlate = isEquipment ? nil : (licensePlate.isEmpty ? nil : licensePlate)
             vehicle.serialNumber = isEquipment ? (serialNumber.isEmpty ? nil : serialNumber) : nil
+            vehicle.engineHP = isEquipment ? (engineHP.isEmpty ? nil : engineHP) : nil
             vehicle.isEquipment = isEquipment
             vehicle.currentMileage = isEquipment ? 0 : mileage
             vehicle.oilChangeInterval = interval
             vehicle.oilWeight = oilWeight
             vehicle.oilQuantity = oilQuantity
             vehicle.oilFilterPartNumber = oilFilterPartNumber
+            vehicle.airFilterPartNumber = isEquipment ? (airFilterPartNumber.isEmpty ? nil : airFilterPartNumber) : nil
             vehicle.drainBoltSize = drainBoltSize.isEmpty ? nil : drainBoltSize
             
             // Associate photos
@@ -224,14 +238,16 @@ struct AddEditVehicleView: View {
                 model: model,
                 year: yearInt,
                 vin: isEquipment ? nil : (vin.isEmpty ? nil : vin),
-                licensePlate: licensePlate.isEmpty ? nil : licensePlate,
+                licensePlate: isEquipment ? nil : (licensePlate.isEmpty ? nil : licensePlate),
                 serialNumber: isEquipment ? (serialNumber.isEmpty ? nil : serialNumber) : nil,
                 isEquipment: isEquipment,
+                engineHP: isEquipment ? (engineHP.isEmpty ? nil : engineHP) : nil,
                 currentMileage: isEquipment ? 0 : mileage,
                 oilChangeInterval: interval,
                 oilWeight: oilWeight,
                 oilQuantity: oilQuantity,
                 oilFilterPartNumber: oilFilterPartNumber,
+                airFilterPartNumber: isEquipment ? (airFilterPartNumber.isEmpty ? nil : airFilterPartNumber) : nil,
                 drainBoltSize: drainBoltSize.isEmpty ? nil : drainBoltSize
             )
             
