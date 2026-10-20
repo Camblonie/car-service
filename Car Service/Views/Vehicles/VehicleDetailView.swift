@@ -90,29 +90,50 @@ struct VehicleDetailView: View {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
             
-            // Current Mileage - tap row to update without using Edit
-            Section("Current Mileage") {
-                Button {
-                    newMileage = "\(vehicle.currentMileage)"
-                    showingMileageUpdate = true
-                } label: {
+            // Current Mileage for vehicles, last service date for equipment
+            if vehicle.isEquipment ?? false {
+                Section("Last Service Date") {
                     HStack {
-                        Image(systemName: "speedometer")
+                        Image(systemName: "calendar")
                             .foregroundColor(.blue)
                             .font(.title2)
-                        Text("\(vehicle.currentMileage) miles")
-                            .font(.title3)
-                            .foregroundColor(.primary)
+                        if let lastServiceDate = vehicle.lastServiceDate {
+                            Text(lastServiceDate, style: .date)
+                                .font(.title3)
+                                .foregroundColor(.primary)
+                        } else {
+                            Text("No service recorded")
+                                .font(.title3)
+                                .foregroundColor(.secondary)
+                        }
                         Spacer()
-                        // Pencil hint indicates the row is tappable for editing
-                        Image(systemName: "pencil.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.title2)
                     }
                     .padding(.vertical, 4)
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+            } else {
+                Section("Current Mileage") {
+                    Button {
+                        newMileage = "\(vehicle.currentMileage)"
+                        showingMileageUpdate = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "speedometer")
+                                .foregroundColor(.blue)
+                                .font(.title2)
+                            Text("\(vehicle.currentMileage) miles")
+                                .font(.title3)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            // Pencil hint indicates the row is tappable for editing
+                            Image(systemName: "pencil.circle.fill")
+                                .foregroundColor(.blue)
+                                .font(.title2)
+                        }
+                        .padding(.vertical, 4)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             
             // Oil Change Status
@@ -268,7 +289,7 @@ struct VehicleDetailView: View {
                 }
             }
         }
-        .navigationTitle("Vehicle Details")
+        .navigationTitle(vehicle.isEquipment ?? false ? "Equipment Details" : "Vehicle Details")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showingEditSheet) {
             AddEditVehicleView(vehicle: vehicle)

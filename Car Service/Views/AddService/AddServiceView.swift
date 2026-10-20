@@ -30,6 +30,8 @@ struct AddServiceView: View {
     // Check if form is valid
     private var isValid: Bool {
         guard let vehicle = selectedVehicle else { return false }
+        // Equipment only requires a service date; vehicles require a valid mileage
+        if vehicle.isEquipment ?? false { return true }
         guard let mileageInt = Int(mileage), mileageInt >= 0 else { return false }
         return mileageInt >= vehicle.currentMileage
     }
@@ -139,24 +141,41 @@ struct AddServiceView: View {
             
             // Service Details
             Section("Service Details") {
-                TextField("Service Mileage", text: $mileage)
-                    .keyboardType(.numberPad)
-                
-                // Quick option to use the vehicle's recorded current mileage
-                if let vehicle = selectedVehicle, mileage != String(vehicle.currentMileage) {
-                    Button {
-                        mileage = String(vehicle.currentMileage)
-                    } label: {
-                        HStack {
-                            Spacer()
-                            Label("Use Current Mileage (\(vehicle.currentMileage) mi)", systemImage: "speedometer")
-                                .font(.subheadline)
-                            Spacer()
+                // Vehicles require mileage; equipment is tracked by date only
+                if let vehicle = selectedVehicle, !(vehicle.isEquipment ?? false) {
+                    TextField("Service Mileage", text: $mileage)
+                        .keyboardType(.numberPad)
+                    
+                    // Quick option to use the vehicle's recorded current mileage
+                    if mileage != String(vehicle.currentMileage) {
+                        Button {
+                            mileage = String(vehicle.currentMileage)
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Label("Use Current Mileage (\(vehicle.currentMileage) mi)", systemImage: "speedometer")
+                                    .font(.subheadline)
+                                Spacer()
+                            }
                         }
                     }
                 }
                 
                 DatePicker("Date", selection: $date, displayedComponents: .date)
+                
+                // Easy shortcut to set the service date to today (prominent for equipment)
+                if let vehicle = selectedVehicle, vehicle.isEquipment ?? false, !Calendar.current.isDateInToday(date) {
+                    Button {
+                        date = Date()
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Label("Use Today", systemImage: "calendar.badge.checkmark")
+                                .font(.subheadline)
+                            Spacer()
+                        }
+                    }
+                }
                 
                 TextField("Service Provider (Optional)", text: $provider)
                 
@@ -202,7 +221,8 @@ struct AddServiceView: View {
     // Save the service record
     private func saveService() {
         guard let vehicle = selectedVehicle else { return }
-        guard let mileageInt = Int(mileage) else { return }
+        // Equipment is tracked by date, so mileage is stored as 0 and ignored
+        let mileageInt = vehicle.isEquipment ?? false ? 0 : Int(mileage) ?? 0
         
         let costDecimal = Decimal(string: cost)
         
@@ -219,8 +239,8 @@ struct AddServiceView: View {
             vehicle: vehicle
         )
         
-        // Update vehicle's current mileage if this service has higher mileage
-        if mileageInt > vehicle.currentMileage {
+        // Update vehicle's current mileage if this service has higher mileage (vehicles only)
+        if !(vehicle.isEquipment ?? false), mileageInt > vehicle.currentMileage {
             vehicle.currentMileage = mileageInt
         }
         
@@ -266,6 +286,8 @@ struct AddServiceSheet: View {
     }
     
     private var isValid: Bool {
+        // Equipment only requires a service date; vehicles require a valid mileage
+        if vehicle.isEquipment ?? false { return true }
         guard let mileageInt = Int(mileage), mileageInt >= 0 else { return false }
         // Editing allows corrections, so only enforce minimum current mileage when adding
         return isEditing ? true : mileageInt >= vehicle.currentMileage
@@ -352,24 +374,41 @@ struct AddServiceSheet: View {
                 
                 // Service Details
                 Section("Service Details") {
-                    TextField("Service Mileage", text: $mileage)
-                        .keyboardType(.numberPad)
-                    
-                    // Quick option to use the vehicle's recorded current mileage
-                    if mileage != String(vehicle.currentMileage) {
-                        Button {
-                            mileage = String(vehicle.currentMileage)
-                        } label: {
-                            HStack {
-                                Spacer()
-                                Label("Use Current Mileage (\(vehicle.currentMileage) mi)", systemImage: "speedometer")
-                                    .font(.subheadline)
-                                Spacer()
+                    // Vehicles require mileage; equipment is tracked by date only
+                    if !(vehicle.isEquipment ?? false) {
+                        TextField("Service Mileage", text: $mileage)
+                            .keyboardType(.numberPad)
+                        
+                        // Quick option to use the vehicle's recorded current mileage
+                        if mileage != String(vehicle.currentMileage) {
+                            Button {
+                                mileage = String(vehicle.currentMileage)
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Label("Use Current Mileage (\(vehicle.currentMileage) mi)", systemImage: "speedometer")
+                                        .font(.subheadline)
+                                    Spacer()
+                                }
                             }
                         }
                     }
                     
                     DatePicker("Date", selection: $date, displayedComponents: .date)
+                    
+                    // Easy shortcut to set the service date to today (prominent for equipment)
+                    if vehicle.isEquipment ?? false, !Calendar.current.isDateInToday(date) {
+                        Button {
+                            date = Date()
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Label("Use Today", systemImage: "calendar.badge.checkmark")
+                                    .font(.subheadline)
+                                Spacer()
+                            }
+                        }
+                    }
                     
                     TextField("Service Provider (Optional)", text: $provider)
                     
@@ -409,7 +448,8 @@ struct AddServiceSheet: View {
     }
     
     private func saveService() {
-        guard let mileageInt = Int(mileage) else { return }
+        // Equipment is tracked by date, so mileage is stored as 0 and ignored
+        let mileageInt = vehicle.isEquipment ?? false ? 0 : Int(mileage) ?? 0
         
         let costDecimal = Decimal(string: cost)
         
@@ -438,8 +478,8 @@ struct AddServiceSheet: View {
             modelContext.insert(serviceRecord)
         }
         
-        // Keep the vehicle's current mileage in sync if the service mileage increased
-        if mileageInt > vehicle.currentMileage {
+        // Keep the vehicle's current mileage in sync if the service mileage increased (vehicles only)
+        if !(vehicle.isEquipment ?? false), mileageInt > vehicle.currentMileage {
             vehicle.currentMileage = mileageInt
         }
         

@@ -106,4 +106,9 @@ final class Vehicle {
         guard let nextMileage = nextOilChangeMileage else { return nil }
         return nextMileage - currentMileage
     }
+    
+    // Date of the most recent service record, used for equipment that does not track mileage
+    var lastServiceDate: Date? {
+        services?.sorted(by: { $0.date > $1.date }).first?.date
+    }
 }

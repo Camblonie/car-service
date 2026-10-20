@@ -185,20 +185,33 @@ struct VehicleCard: View {
             
             // Combined primary and secondary info in a compact vertical stack
             VStack(alignment: .leading, spacing: 4) {
-                Text(vehicle.displayName)
+                // Equipment uses make + type, vehicles use the full display name with year
+                Text(vehicle.isEquipment ?? false ? "\(vehicle.make) \(vehicle.model)".trimmingCharacters(in: .whitespaces) : vehicle.displayName)
                     .font(.headline)
                     .lineLimit(1)
                 
-                // Stack mileage and oil-change status vertically so each value has the full available width
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(vehicle.currentMileage) mi")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if let milesUntil = vehicle.milesUntilOilChange {
-                        Label("\(milesUntil) mi to oil change", systemImage: "drop.fill")
+                // Equipment shows the last service date; vehicles show mileage and oil-change status
+                if vehicle.isEquipment ?? false {
+                    if let lastServiceDate = vehicle.lastServiceDate {
+                        Text("Last service: \(lastServiceDate, style: .date)")
                             .font(.caption)
-                            .foregroundColor(milesUntil < 500 ? .red : .secondary)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("No service recorded")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(vehicle.currentMileage) mi")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        if let milesUntil = vehicle.milesUntilOilChange {
+                            Label("\(milesUntil) mi to oil change", systemImage: "drop.fill")
+                                .font(.caption)
+                                .foregroundColor(milesUntil < 500 ? .red : .secondary)
+                        }
                     }
                 }
             }
