@@ -11,4 +11,4 @@
 - [x] Change main view to “my vehicles/equipment” Track lawn Mower and snowblower and other oil changes - added Oct 20, 2026
 - [x] The thumbnails on the main vehicle list are not updating with what is in the vehicle detail - added Oct 20, 2026
 - [x] Reduce white space on main screen - added Oct 20, 2026
-- [ ] Add a screen after the plus button on the main page so the user can choose between vehicle or equipment. If choosing equipment change the detail form. - added Oct 20, 2026
+- [x] Add a screen after the plus button on the main page so the user can choose between vehicle or equipment. If choosing equipment change the detail form. - added Oct 20, 2026
