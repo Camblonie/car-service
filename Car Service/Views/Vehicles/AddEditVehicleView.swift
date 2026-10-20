@@ -23,12 +23,14 @@ struct AddEditVehicleView: View {
     @State private var licensePlate = ""
     @State private var serialNumber = ""
     @State private var engineHP = ""
+    @State private var engineStrokeType = "4-Stroke"
     @State private var currentMileage = ""
     @State private var oilChangeInterval = "5000"
     @State private var oilWeight = ""
     @State private var oilQuantity = ""
     @State private var oilFilterPartNumber = ""
     @State private var airFilterPartNumber = ""
+    @State private var sparkPlugNumber = ""
     @State private var drainBoltSize = ""
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @State private var photos: [VehiclePhoto] = []
@@ -59,12 +61,14 @@ struct AddEditVehicleView: View {
             _licensePlate = State(initialValue: vehicle.licensePlate ?? "")
             _serialNumber = State(initialValue: vehicle.serialNumber ?? "")
             _engineHP = State(initialValue: vehicle.engineHP ?? "")
+            _engineStrokeType = State(initialValue: vehicle.engineStrokeType ?? "4-Stroke")
             _currentMileage = State(initialValue: String(vehicle.currentMileage))
             _oilChangeInterval = State(initialValue: String(vehicle.oilChangeInterval))
             _oilWeight = State(initialValue: vehicle.oilWeight)
             _oilQuantity = State(initialValue: vehicle.oilQuantity)
             _oilFilterPartNumber = State(initialValue: vehicle.oilFilterPartNumber)
             _airFilterPartNumber = State(initialValue: vehicle.airFilterPartNumber ?? "")
+            _sparkPlugNumber = State(initialValue: vehicle.sparkPlugNumber ?? "")
             _drainBoltSize = State(initialValue: vehicle.drainBoltSize ?? "")
             _photos = State(initialValue: vehicle.photos ?? [])
         }
@@ -95,6 +99,7 @@ struct AddEditVehicleView: View {
                     TextField("Oil Filter Part Number", text: $oilFilterPartNumber)
                     if isEquipment {
                         TextField("Air Filter Part Number", text: $airFilterPartNumber)
+                        TextField("Spark Plug Number", text: $sparkPlugNumber)
                     }
                     TextField("Drain Bolt Size (e.g., 14 mm)", text: $drainBoltSize)
                 }
@@ -152,13 +157,15 @@ struct AddEditVehicleView: View {
     private var vehicleInfoSection: some View {
         Section(isEquipment ? "Equipment Information" : "Vehicle Information") {
             TextField("Make (e.g., Toyota)", text: $make)
-            TextField("Model (e.g., Camry)", text: $model)
             if isEquipment {
+                TextField("Type (e.g., Lawnmower, Blower, Trimmer)", text: $model)
                 TextField("Engine HP", text: $engineHP)
+                engineStrokeSlider
                 TextField("Serial Number", text: $serialNumber)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.characters)
             } else {
+                TextField("Model (e.g., Camry)", text: $model)
                 TextField("Year", text: $year)
                     .keyboardType(.numberPad)
                 TextField("VIN (Optional)", text: $vin)
@@ -167,6 +174,30 @@ struct AddEditVehicleView: View {
                 TextField("License Plate (Optional)", text: $licensePlate)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.characters)
+            }
+        }
+    }
+    
+    // Slider for selecting 2-Stroke or 4-Stroke engine type
+    private var engineStrokeSlider: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Engine Stroke")
+                .foregroundColor(.secondary)
+            HStack {
+                Text("2-Stroke")
+                    .fontWeight(engineStrokeType == "2-Stroke" ? .semibold : .regular)
+                    .foregroundColor(engineStrokeType == "2-Stroke" ? .blue : .secondary)
+                Spacer()
+                Picker("Engine Stroke", selection: $engineStrokeType) {
+                    Text("2-Stroke").tag("2-Stroke")
+                    Text("4-Stroke").tag("4-Stroke")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 120)
+                Spacer()
+                Text("4-Stroke")
+                    .fontWeight(engineStrokeType == "4-Stroke" ? .semibold : .regular)
+                    .foregroundColor(engineStrokeType == "4-Stroke" ? .blue : .secondary)
             }
         }
     }
@@ -219,6 +250,7 @@ struct AddEditVehicleView: View {
             vehicle.licensePlate = isEquipment ? nil : (licensePlate.isEmpty ? nil : licensePlate)
             vehicle.serialNumber = isEquipment ? (serialNumber.isEmpty ? nil : serialNumber) : nil
             vehicle.engineHP = isEquipment ? (engineHP.isEmpty ? nil : engineHP) : nil
+            vehicle.engineStrokeType = isEquipment ? engineStrokeType : nil
             vehicle.isEquipment = isEquipment
             vehicle.currentMileage = isEquipment ? 0 : mileage
             vehicle.oilChangeInterval = interval
@@ -226,6 +258,7 @@ struct AddEditVehicleView: View {
             vehicle.oilQuantity = oilQuantity
             vehicle.oilFilterPartNumber = oilFilterPartNumber
             vehicle.airFilterPartNumber = isEquipment ? (airFilterPartNumber.isEmpty ? nil : airFilterPartNumber) : nil
+            vehicle.sparkPlugNumber = isEquipment ? (sparkPlugNumber.isEmpty ? nil : sparkPlugNumber) : nil
             vehicle.drainBoltSize = drainBoltSize.isEmpty ? nil : drainBoltSize
             
             // Associate photos
@@ -243,12 +276,14 @@ struct AddEditVehicleView: View {
                 serialNumber: isEquipment ? (serialNumber.isEmpty ? nil : serialNumber) : nil,
                 isEquipment: isEquipment,
                 engineHP: isEquipment ? (engineHP.isEmpty ? nil : engineHP) : nil,
+                engineStrokeType: isEquipment ? engineStrokeType : nil,
                 currentMileage: isEquipment ? 0 : mileage,
                 oilChangeInterval: interval,
                 oilWeight: oilWeight,
                 oilQuantity: oilQuantity,
                 oilFilterPartNumber: oilFilterPartNumber,
                 airFilterPartNumber: isEquipment ? (airFilterPartNumber.isEmpty ? nil : airFilterPartNumber) : nil,
+                sparkPlugNumber: isEquipment ? (sparkPlugNumber.isEmpty ? nil : sparkPlugNumber) : nil,
                 drainBoltSize: drainBoltSize.isEmpty ? nil : drainBoltSize
             )
             

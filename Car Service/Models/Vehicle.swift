@@ -19,12 +19,14 @@ final class Vehicle {
     var serialNumber: String?
     var isEquipment: Bool?
     var engineHP: String?
+    var engineStrokeType: String?
     var currentMileage: Int
     var oilChangeInterval: Int
     var oilWeight: String
     var oilQuantity: String
     var oilFilterPartNumber: String
     var airFilterPartNumber: String?
+    var sparkPlugNumber: String?
     var drainBoltSize: String?
     var createdAt: Date
     
@@ -42,12 +44,14 @@ final class Vehicle {
         serialNumber: String? = nil,
         isEquipment: Bool? = nil,
         engineHP: String? = nil,
+        engineStrokeType: String? = nil,
         currentMileage: Int = 0,
         oilChangeInterval: Int = 5000,
         oilWeight: String = "",
         oilQuantity: String = "",
         oilFilterPartNumber: String = "",
         airFilterPartNumber: String? = nil,
+        sparkPlugNumber: String? = nil,
         drainBoltSize: String? = nil,
         createdAt: Date? = nil
     ) {
@@ -60,12 +64,14 @@ final class Vehicle {
         self.serialNumber = serialNumber
         self.isEquipment = isEquipment
         self.engineHP = engineHP
+        self.engineStrokeType = engineStrokeType
         self.currentMileage = currentMileage
         self.oilChangeInterval = oilChangeInterval
         self.oilWeight = oilWeight
         self.oilQuantity = oilQuantity
         self.oilFilterPartNumber = oilFilterPartNumber
         self.airFilterPartNumber = airFilterPartNumber
+        self.sparkPlugNumber = sparkPlugNumber
         self.drainBoltSize = drainBoltSize
         self.createdAt = createdAt ?? Date()
         // Suppress SwiftData unused-initializer warnings for defaulted relationships
