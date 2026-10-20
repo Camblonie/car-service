@@ -46,7 +46,7 @@ struct VehicleListView: View {
                     vehicleList
                 }
             }
-            .navigationTitle("My Vehicles")
+            .navigationTitle("My Vehicles and Equipment")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -163,61 +163,62 @@ struct VehicleCard: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Thumbnail
+            // Thumbnail — larger to reduce blank space and improve visibility
             if let thumbnail = vehicle.thumbnailPhoto,
                let image = thumbnail.image {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 60, height: 60)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
             } else {
                 // Default placeholder
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Color.gray.opacity(0.3))
-                    .frame(width: 60, height: 60)
+                    .frame(width: 80, height: 80)
                     .overlay(
                         Image(systemName: "car.fill")
-                            .font(.system(size: 24))
+                            .font(.system(size: 32))
                             .foregroundColor(.gray)
                     )
             }
             
+            // Combined primary and secondary info in a compact vertical stack
             VStack(alignment: .leading, spacing: 4) {
                 Text(vehicle.displayName)
                     .font(.headline)
+                    .lineLimit(1)
                 
-                HStack {
+                // Single secondary line with mileage, oil change status, and plate
+                HStack(spacing: 6) {
                     Text("\(vehicle.currentMileage) mi")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
                     if let milesUntil = vehicle.milesUntilOilChange {
                         Text("•")
+                            .font(.caption)
                             .foregroundColor(.secondary)
-                        Label("\(milesUntil) mi to oil change", systemImage: "drop.fill")
+                        Label("\(milesUntil) mi", systemImage: "drop.fill")
                             .font(.caption)
                             .foregroundColor(milesUntil < 500 ? .red : .secondary)
                     }
-                }
-                
-                if let vin = vehicle.vin, !vin.isEmpty {
-                    Text("VIN: \(vin)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                
-                if let licensePlate = vehicle.licensePlate, !licensePlate.isEmpty {
-                    Text("Plate: \(licensePlate)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                    
+                    if let licensePlate = vehicle.licensePlate, !licensePlate.isEmpty {
+                        Text("•")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(licensePlate)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             
             Spacer()
             
             // Quick action buttons: mileage update and add service
-            HStack(spacing: 8) {
+            VStack(spacing: 8) {
                 Button(action: onMileageUpdate) {
                     Image(systemName: "speedometer")
                         .font(.system(size: 18))
