@@ -348,14 +348,14 @@ struct SettingsView: View {
                 "\(csvEscape(vehicle.vin ?? ""))," +
                 "\(vehicle.currentMileage)" +
                 ",,,,,,," + // 6 commas: cols 7-12 blank, then separator before col 13
-                "\(vehicle.isEquipment ? "Yes" : "No")," +
+                "\(vehicle.isEquipment ?? false ? "Yes" : "No")," +
                 "\(csvEscape(vehicle.serialNumber ?? ""))," +
                 "\(csvEscape(vehicle.licensePlate ?? ""))," +
                 "\(vehicle.oilChangeInterval)," +
                 "\(csvEscape(vehicle.oilWeight))," +
                 "\(csvEscape(vehicle.oilQuantity))," +
                 "\(csvEscape(vehicle.oilFilterPartNumber))," +
-                "\(csvEscape(vehicle.drainBoltSize))," +
+                "\(csvEscape(vehicle.drainBoltSize ?? ""))," +
                 ",,"  // cols 21-23: TargetMileage, TargetDate, Completed blank
             )
         }
@@ -753,13 +753,13 @@ struct SettingsView: View {
                     vin: vehicleExport.vin,
                     licensePlate: vehicleExport.licensePlate,
                     serialNumber: vehicleExport.serialNumber,
-                    isEquipment: vehicleExport.isEquipment ?? false,
+                    isEquipment: vehicleExport.isEquipment,
                     currentMileage: vehicleExport.currentMileage,
                     oilChangeInterval: vehicleExport.oilChangeInterval ?? 5000,
                     oilWeight: vehicleExport.oilWeight ?? "",
                     oilQuantity: vehicleExport.oilQuantity ?? "",
                     oilFilterPartNumber: vehicleExport.oilFilterPartNumber ?? "",
-                    drainBoltSize: vehicleExport.drainBoltSize ?? "",
+                    drainBoltSize: vehicleExport.drainBoltSize,
                     createdAt: vehicleExport.createdAt
                 )
                 modelContext.insert(newVehicle)

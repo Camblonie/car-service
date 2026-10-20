@@ -179,7 +179,7 @@ struct VehicleDetailView: View {
                         Text("Drain Bolt Size:")
                             .foregroundColor(.secondary)
                         Spacer()
-                        Text(vehicle.drainBoltSize.isEmpty ? "Not set" : vehicle.drainBoltSize)
+                        Text(vehicle.drainBoltSize?.isEmpty ?? true ? "Not set" : vehicle.drainBoltSize ?? "")
                             .fontWeight(.medium)
                     }
                 }

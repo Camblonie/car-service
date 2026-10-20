@@ -17,13 +17,13 @@ final class Vehicle {
     var vin: String?
     var licensePlate: String?
     var serialNumber: String?
-    var isEquipment: Bool
+    var isEquipment: Bool?
     var currentMileage: Int
     var oilChangeInterval: Int
     var oilWeight: String
     var oilQuantity: String
     var oilFilterPartNumber: String
-    var drainBoltSize: String
+    var drainBoltSize: String?
     var createdAt: Date
     
     // Relationships
@@ -38,13 +38,13 @@ final class Vehicle {
         vin: String? = nil,
         licensePlate: String? = nil,
         serialNumber: String? = nil,
-        isEquipment: Bool = false,
+        isEquipment: Bool? = nil,
         currentMileage: Int = 0,
         oilChangeInterval: Int = 5000,
         oilWeight: String = "",
         oilQuantity: String = "",
         oilFilterPartNumber: String = "",
-        drainBoltSize: String = "",
+        drainBoltSize: String? = nil,
         createdAt: Date? = nil
     ) {
         self.id = UUID()
@@ -62,6 +62,7 @@ final class Vehicle {
         self.oilFilterPartNumber = oilFilterPartNumber
         self.drainBoltSize = drainBoltSize
         self.createdAt = createdAt ?? Date()
+        // Suppress SwiftData unused-initializer warnings for defaulted relationships
         self.services = []
         self.photos = []
         self.upcomingServices = []

@@ -58,7 +58,7 @@ struct AddEditVehicleView: View {
             _oilWeight = State(initialValue: vehicle.oilWeight)
             _oilQuantity = State(initialValue: vehicle.oilQuantity)
             _oilFilterPartNumber = State(initialValue: vehicle.oilFilterPartNumber)
-            _drainBoltSize = State(initialValue: vehicle.drainBoltSize)
+            _drainBoltSize = State(initialValue: vehicle.drainBoltSize ?? "")
             _photos = State(initialValue: vehicle.photos ?? [])
         }
     }
@@ -211,7 +211,7 @@ struct AddEditVehicleView: View {
             vehicle.oilWeight = oilWeight
             vehicle.oilQuantity = oilQuantity
             vehicle.oilFilterPartNumber = oilFilterPartNumber
-            vehicle.drainBoltSize = drainBoltSize
+            vehicle.drainBoltSize = drainBoltSize.isEmpty ? nil : drainBoltSize
             
             // Associate photos
             for photo in photos {
@@ -232,7 +232,7 @@ struct AddEditVehicleView: View {
                 oilWeight: oilWeight,
                 oilQuantity: oilQuantity,
                 oilFilterPartNumber: oilFilterPartNumber,
-                drainBoltSize: drainBoltSize
+                drainBoltSize: drainBoltSize.isEmpty ? nil : drainBoltSize
             )
             
             // Associate photos
