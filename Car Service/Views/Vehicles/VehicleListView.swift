@@ -189,28 +189,16 @@ struct VehicleCard: View {
                     .font(.headline)
                     .lineLimit(1)
                 
-                // Single secondary line with mileage, oil change status, and plate
-                HStack(spacing: 6) {
+                // Stack mileage and oil-change status vertically so each value has the full available width
+                VStack(alignment: .leading, spacing: 2) {
                     Text("\(vehicle.currentMileage) mi")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
                     if let milesUntil = vehicle.milesUntilOilChange {
-                        Text("•")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Label("\(milesUntil) mi", systemImage: "drop.fill")
+                        Label("\(milesUntil) mi to oil change", systemImage: "drop.fill")
                             .font(.caption)
                             .foregroundColor(milesUntil < 500 ? .red : .secondary)
-                    }
-                    
-                    if let licensePlate = vehicle.licensePlate, !licensePlate.isEmpty {
-                        Text("•")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(licensePlate)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
                 }
             }
