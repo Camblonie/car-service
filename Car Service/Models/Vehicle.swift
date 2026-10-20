@@ -16,6 +16,8 @@ final class Vehicle {
     var year: Int
     var vin: String?
     var licensePlate: String?
+    var serialNumber: String?
+    var isEquipment: Bool
     var currentMileage: Int
     var oilChangeInterval: Int
     var oilWeight: String
@@ -35,6 +37,8 @@ final class Vehicle {
         year: Int,
         vin: String? = nil,
         licensePlate: String? = nil,
+        serialNumber: String? = nil,
+        isEquipment: Bool = false,
         currentMileage: Int = 0,
         oilChangeInterval: Int = 5000,
         oilWeight: String = "",
@@ -49,6 +53,8 @@ final class Vehicle {
         self.year = year
         self.vin = vin
         self.licensePlate = licensePlate
+        self.serialNumber = serialNumber
+        self.isEquipment = isEquipment
         self.currentMileage = currentMileage
         self.oilChangeInterval = oilChangeInterval
         self.oilWeight = oilWeight

@@ -12,7 +12,9 @@ struct VehicleListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Vehicle.make) private var vehicles: [Vehicle]
     
-    @State private var showingAddVehicle = false
+    @State private var showingAddTypeSelection = false
+    @State private var showingAddEntry = false
+    @State private var addEntryIsEquipment = false
     @State private var showingEditVehicle = false
     @State private var vehicleToEdit: Vehicle?
     @State private var searchText = ""
@@ -39,7 +41,7 @@ struct VehicleListView: View {
         NavigationStack {
             Group {
                 if vehicles.isEmpty {
-                    EmptyVehicleView(showingAddVehicle: $showingAddVehicle)
+                    EmptyVehicleView(showingAddEntry: $showingAddTypeSelection)
                 } else {
                     vehicleList
                 }
@@ -48,14 +50,25 @@ struct VehicleListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        showingAddVehicle = true
+                        showingAddTypeSelection = true
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
-            .sheet(isPresented: $showingAddVehicle) {
-                AddEditVehicleView(vehicle: nil)
+            .confirmationDialog("Add New", isPresented: $showingAddTypeSelection, titleVisibility: .visible) {
+                Button("Vehicle") {
+                    addEntryIsEquipment = false
+                    showingAddEntry = true
+                }
+                Button("Equipment") {
+                    addEntryIsEquipment = true
+                    showingAddEntry = true
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+            .sheet(isPresented: $showingAddEntry) {
+                AddEditVehicleView(vehicle: nil, isEquipment: addEntryIsEquipment)
             }
             .sheet(isPresented: $showingEditVehicle) {
                 if let vehicle = vehicleToEdit {
@@ -302,7 +315,7 @@ struct MileageUpdateSheet: View {
 
 // MARK: - Empty State
 struct EmptyVehicleView: View {
-    @Binding var showingAddVehicle: Bool
+    @Binding var showingAddEntry: Bool
     
     var body: some View {
         VStack(spacing: 20) {
@@ -323,7 +336,7 @@ struct EmptyVehicleView: View {
                 .padding(.horizontal)
             
             Button {
-                showingAddVehicle = true
+                showingAddEntry = true
             } label: {
                 Label("Add Your First Vehicle", systemImage: "plus")
                     .font(.headline)

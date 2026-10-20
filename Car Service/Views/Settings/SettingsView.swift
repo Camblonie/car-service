@@ -328,15 +328,15 @@ struct SettingsView: View {
         var csvLines: [String] = []
         let isoFormatter = ISO8601DateFormatter()
         
-        // CSV Header — columns 0-12 match the original format; 13-21 are new
+        // CSV Header — columns 0-12 match the original format; 13-23 are new
         csvLines.append(
             "Type,Vehicle Name,Make,Model,Year,VIN,Current Mileage," +
             "Service Type,Service Mileage,Service Date,Notes,Provider,Cost," +
-            "License Plate,Oil Change Interval,Oil Weight,Oil Quantity,Oil Filter Part#,Drain Bolt Size," +
+            "Is Equipment,Serial Number,License Plate,Oil Change Interval,Oil Weight,Oil Quantity,Oil Filter Part#,Drain Bolt Size," +
             "Target Mileage,Target Date,Completed"
         )
         
-        // Vehicle rows — cols 0-12 blank for service-only columns, 13-18 carry vehicle specs
+        // Vehicle rows — cols 0-12 blank for service-only columns, 13-20 carry vehicle specs
         for vehicle in vehicles {
             // 6 commas after currentMileage fill cols 7-12 (ServiceType through Cost) with blanks
             csvLines.append(
@@ -348,17 +348,19 @@ struct SettingsView: View {
                 "\(csvEscape(vehicle.vin ?? ""))," +
                 "\(vehicle.currentMileage)" +
                 ",,,,,,," + // 6 commas: cols 7-12 blank, then separator before col 13
+                "\(vehicle.isEquipment ? "Yes" : "No")," +
+                "\(csvEscape(vehicle.serialNumber ?? ""))," +
                 "\(csvEscape(vehicle.licensePlate ?? ""))," +
                 "\(vehicle.oilChangeInterval)," +
                 "\(csvEscape(vehicle.oilWeight))," +
                 "\(csvEscape(vehicle.oilQuantity))," +
                 "\(csvEscape(vehicle.oilFilterPartNumber))," +
                 "\(csvEscape(vehicle.drainBoltSize))," +
-                ",,"  // cols 19-21: TargetMileage, TargetDate, Completed blank
+                ",,"  // cols 21-23: TargetMileage, TargetDate, Completed blank
             )
         }
         
-        // Service record rows — cols 13-18 carry vehicle specs for round-trip fidelity
+        // Service record rows — cols 13-20 carry vehicle specs for round-trip fidelity
         for service in services {
             let vehicleName = service.vehicle?.displayName ?? "Unknown"
             let costString = service.cost?.description ?? ""
@@ -377,17 +379,19 @@ struct SettingsView: View {
                 "\(csvEscape(service.notes))," +
                 "\(csvEscape(service.provider ?? ""))," +
                 "\(costString)," +
+                "\(service.vehicle?.isEquipment ?? false ? "Yes" : "No")," +
+                "\(csvEscape(service.vehicle?.serialNumber ?? ""))," +
                 "\(csvEscape(service.vehicle?.licensePlate ?? ""))," +
                 "\(service.vehicle?.oilChangeInterval ?? 0)," +
                 "\(csvEscape(service.vehicle?.oilWeight ?? ""))," +
                 "\(csvEscape(service.vehicle?.oilQuantity ?? ""))," +
                 "\(csvEscape(service.vehicle?.oilFilterPartNumber ?? ""))," +
                 "\(csvEscape(service.vehicle?.drainBoltSize ?? ""))," +
-                ",,"  // cols 19-21: upcoming cols blank
+                ",,"  // cols 21-23: upcoming cols blank
             )
         }
         
-        // Upcoming service rows — cols 7-12 carry service-type info; 19-21 carry upcoming fields
+        // Upcoming service rows — cols 7-12 carry service-type info; 21-23 carry upcoming fields
         for upcomingService in upcoming {
             let vehicleName = upcomingService.vehicle?.displayName ?? "Unknown"
             let targetDateString = upcomingService.targetDate.map { isoFormatter.string(from: $0) } ?? ""
@@ -403,6 +407,8 @@ struct SettingsView: View {
                 ",,," + // cols 8-10: service mileage/date/notes blank
                 "," + // col 11: provider blank
                 "," + // col 12: cost blank
+                "\(upcomingService.vehicle?.isEquipment ?? false ? "Yes" : "No")," +
+                "\(csvEscape(upcomingService.vehicle?.serialNumber ?? ""))," +
                 "\(csvEscape(upcomingService.vehicle?.licensePlate ?? ""))," +
                 "\(upcomingService.vehicle?.oilChangeInterval ?? 0)," +
                 "\(csvEscape(upcomingService.vehicle?.oilWeight ?? ""))," +
@@ -523,13 +529,15 @@ struct SettingsView: View {
             
             if type == "Vehicle" && fields.count >= 7 {
                 let vin = fields.count > 5 && !fields[5].isEmpty ? fields[5] : nil
-                // Cols 13-18: License Plate, Oil Change Interval, Oil Weight, Oil Quantity, Oil Filter Part#, Drain Bolt Size
-                let licensePlate = fields.count > 13 && !fields[13].isEmpty ? fields[13] : nil
-                let oilInterval = fields.count > 14 ? Int(fields[14].replacingOccurrences(of: ",", with: "")) : nil
-                let oilWeight = fields.count > 15 && !fields[15].isEmpty ? fields[15] : nil
-                let oilQuantity = fields.count > 16 && !fields[16].isEmpty ? fields[16] : nil
-                let oilFilter = fields.count > 17 && !fields[17].isEmpty ? fields[17] : nil
-                let drainBoltSize = fields.count > 18 && !fields[18].isEmpty ? fields[18] : nil
+                // Cols 13-20: Is Equipment, Serial Number, License Plate, Oil Change Interval, Oil Weight, Oil Quantity, Oil Filter Part#, Drain Bolt Size
+                let isEquipment = fields.count > 13 ? fields[13].trimmingCharacters(in: .whitespaces).lowercased() == "yes" : false
+                let serialNumber = fields.count > 14 && !fields[14].isEmpty ? fields[14] : nil
+                let licensePlate = fields.count > 15 && !fields[15].isEmpty ? fields[15] : nil
+                let oilInterval = fields.count > 16 ? Int(fields[16].replacingOccurrences(of: ",", with: "")) : nil
+                let oilWeight = fields.count > 17 && !fields[17].isEmpty ? fields[17] : nil
+                let oilQuantity = fields.count > 18 && !fields[18].isEmpty ? fields[18] : nil
+                let oilFilter = fields.count > 19 && !fields[19].isEmpty ? fields[19] : nil
+                let drainBoltSize = fields.count > 20 && !fields[20].isEmpty ? fields[20] : nil
                 let vehicleExport = VehicleExport(
                     id: UUID(),
                     make: fields.count > 2 ? fields[2] : "",
@@ -544,7 +552,9 @@ struct SettingsView: View {
                     drainBoltSize: drainBoltSize,
                     photos: [],
                     createdAt: nil,
-                    licensePlate: licensePlate
+                    licensePlate: licensePlate,
+                    serialNumber: serialNumber,
+                    isEquipment: isEquipment
                 )
                 vehicles.append(vehicleExport)
                 // Key by the vehicle's display name (matches fields[1] on service rows)
@@ -567,13 +577,15 @@ struct SettingsView: View {
                     // Use service mileage as a best guess for vehicle current mileage; strip commas
                     let mileage = Int((fields.count > 8 ? fields[8].trimmingCharacters(in: .whitespaces) : "").replacingOccurrences(of: ",", with: "")) ?? 0
                     
-                    // Read oil specs from cols 13-18 if present on service rows too
-                    let oilIntervalFS = fields.count > 14 ? Int(fields[14].replacingOccurrences(of: ",", with: "")) : nil
-                    let oilWeightFS = fields.count > 15 && !fields[15].isEmpty ? fields[15] : nil
-                    let oilQuantityFS = fields.count > 16 && !fields[16].isEmpty ? fields[16] : nil
-                    let oilFilterFS = fields.count > 17 && !fields[17].isEmpty ? fields[17] : nil
-                    let drainBoltSizeFS = fields.count > 18 && !fields[18].isEmpty ? fields[18] : nil
-                    let licensePlateFS = fields.count > 13 && !fields[13].isEmpty ? fields[13] : nil
+                    // Read specs from cols 13-20 if present on service rows too
+                    let isEquipmentFS = fields.count > 13 ? fields[13].trimmingCharacters(in: .whitespaces).lowercased() == "yes" : false
+                    let serialNumberFS = fields.count > 14 && !fields[14].isEmpty ? fields[14] : nil
+                    let oilIntervalFS = fields.count > 16 ? Int(fields[16].replacingOccurrences(of: ",", with: "")) : nil
+                    let oilWeightFS = fields.count > 17 && !fields[17].isEmpty ? fields[17] : nil
+                    let oilQuantityFS = fields.count > 18 && !fields[18].isEmpty ? fields[18] : nil
+                    let oilFilterFS = fields.count > 19 && !fields[19].isEmpty ? fields[19] : nil
+                    let drainBoltSizeFS = fields.count > 20 && !fields[20].isEmpty ? fields[20] : nil
+                    let licensePlateFS = fields.count > 15 && !fields[15].isEmpty ? fields[15] : nil
                     
                     if !make.isEmpty || !model.isEmpty {
                         let newVehicleExport = VehicleExport(
@@ -590,7 +602,9 @@ struct SettingsView: View {
                             drainBoltSize: drainBoltSizeFS,
                             photos: [],
                             createdAt: nil,
-                            licensePlate: licensePlateFS
+                            licensePlate: licensePlateFS,
+                            serialNumber: serialNumberFS,
+                            isEquipment: isEquipmentFS
                         )
                         vehicles.append(newVehicleExport)
                         // Register under both the provided vehicle name and the computed display name
@@ -738,6 +752,8 @@ struct SettingsView: View {
                     year: vehicleExport.year,
                     vin: vehicleExport.vin,
                     licensePlate: vehicleExport.licensePlate,
+                    serialNumber: vehicleExport.serialNumber,
+                    isEquipment: vehicleExport.isEquipment ?? false,
                     currentMileage: vehicleExport.currentMileage,
                     oilChangeInterval: vehicleExport.oilChangeInterval ?? 5000,
                     oilWeight: vehicleExport.oilWeight ?? "",
@@ -983,6 +999,8 @@ struct VehicleExport: Codable {
     let year: Int
     let vin: String?
     let licensePlate: String?
+    let serialNumber: String?
+    let isEquipment: Bool?
     let currentMileage: Int
     let oilChangeInterval: Int?
     let oilWeight: String?
@@ -999,6 +1017,8 @@ struct VehicleExport: Codable {
         self.year = vehicle.year
         self.vin = vehicle.vin
         self.licensePlate = vehicle.licensePlate
+        self.serialNumber = vehicle.serialNumber
+        self.isEquipment = vehicle.isEquipment
         self.currentMileage = vehicle.currentMileage
         self.oilChangeInterval = vehicle.oilChangeInterval
         self.oilWeight = vehicle.oilWeight
@@ -1015,13 +1035,15 @@ struct VehicleExport: Codable {
     }
     
     // Initializer for CSV import
-    init(id: UUID, make: String, model: String, year: Int, vin: String?, currentMileage: Int, oilChangeInterval: Int?, oilWeight: String?, oilQuantity: String?, oilFilterPartNumber: String?, drainBoltSize: String?, photos: [VehiclePhotoExport], createdAt: Date?, licensePlate: String? = nil) {
+    init(id: UUID, make: String, model: String, year: Int, vin: String?, currentMileage: Int, oilChangeInterval: Int?, oilWeight: String?, oilQuantity: String?, oilFilterPartNumber: String?, drainBoltSize: String?, photos: [VehiclePhotoExport], createdAt: Date?, licensePlate: String? = nil, serialNumber: String? = nil, isEquipment: Bool? = nil) {
         self.id = id
         self.make = make
         self.model = model
         self.year = year
         self.vin = vin
         self.licensePlate = licensePlate
+        self.serialNumber = serialNumber
+        self.isEquipment = isEquipment
         self.currentMileage = currentMileage
         self.oilChangeInterval = oilChangeInterval
         self.oilWeight = oilWeight

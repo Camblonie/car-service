@@ -14,12 +14,14 @@ struct AddEditVehicleView: View {
     @Environment(\.dismiss) private var dismiss
     
     let vehicle: Vehicle?
+    let isEquipment: Bool
     
     @State private var make = ""
     @State private var model = ""
     @State private var year = ""
     @State private var vin = ""
     @State private var licensePlate = ""
+    @State private var serialNumber = ""
     @State private var currentMileage = ""
     @State private var oilChangeInterval = "5000"
     @State private var oilWeight = ""
@@ -30,18 +32,27 @@ struct AddEditVehicleView: View {
     @State private var photos: [VehiclePhoto] = []
     
     private var isEditing: Bool { vehicle != nil }
+    private var navigationTitle: String {
+        if isEditing {
+            return isEquipment ? "Edit Equipment" : "Edit Vehicle"
+        } else {
+            return isEquipment ? "Add Equipment" : "Add Vehicle"
+        }
+    }
     private var isValid: Bool {
         !make.isEmpty && !model.isEmpty && !year.isEmpty && Int(year) != nil
     }
     
-    init(vehicle: Vehicle?) {
+    init(vehicle: Vehicle?, isEquipment: Bool = false) {
         self.vehicle = vehicle
+        self.isEquipment = vehicle?.isEquipment ?? isEquipment
         if let vehicle = vehicle {
             _make = State(initialValue: vehicle.make)
             _model = State(initialValue: vehicle.model)
             _year = State(initialValue: String(vehicle.year))
             _vin = State(initialValue: vehicle.vin ?? "")
             _licensePlate = State(initialValue: vehicle.licensePlate ?? "")
+            _serialNumber = State(initialValue: vehicle.serialNumber ?? "")
             _currentMileage = State(initialValue: String(vehicle.currentMileage))
             _oilChangeInterval = State(initialValue: String(vehicle.oilChangeInterval))
             _oilWeight = State(initialValue: vehicle.oilWeight)
@@ -58,10 +69,12 @@ struct AddEditVehicleView: View {
                 // Basic Info Section
                 vehicleInfoSection
                 
-                // Mileage Section
-                Section("Mileage") {
-                    TextField("Current Mileage", text: $currentMileage)
-                        .keyboardType(.numberPad)
+                // Mileage Section (vehicles only)
+                if !isEquipment {
+                    Section("Mileage") {
+                        TextField("Current Mileage", text: $currentMileage)
+                            .keyboardType(.numberPad)
+                    }
                 }
                 
                 // Oil Change Section
@@ -101,7 +114,7 @@ struct AddEditVehicleView: View {
                     }
                 }
             }
-            .navigationTitle(isEditing ? "Edit Vehicle" : "Add Vehicle")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -125,14 +138,20 @@ struct AddEditVehicleView: View {
     // Vehicle info form section extracted to reduce type-checker complexity
     @ViewBuilder
     private var vehicleInfoSection: some View {
-        Section("Vehicle Information") {
+        Section(isEquipment ? "Equipment Information" : "Vehicle Information") {
             TextField("Make (e.g., Toyota)", text: $make)
             TextField("Model (e.g., Camry)", text: $model)
             TextField("Year", text: $year)
                 .keyboardType(.numberPad)
-            TextField("VIN (Optional)", text: $vin)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.characters)
+            if isEquipment {
+                TextField("Serial Number", text: $serialNumber)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.characters)
+            } else {
+                TextField("VIN (Optional)", text: $vin)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.characters)
+            }
             TextField("License Plate (Optional)", text: $licensePlate)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.characters)
@@ -183,9 +202,11 @@ struct AddEditVehicleView: View {
             vehicle.make = make
             vehicle.model = model
             vehicle.year = yearInt
-            vehicle.vin = vin.isEmpty ? nil : vin
+            vehicle.vin = isEquipment ? nil : (vin.isEmpty ? nil : vin)
             vehicle.licensePlate = licensePlate.isEmpty ? nil : licensePlate
-            vehicle.currentMileage = mileage
+            vehicle.serialNumber = isEquipment ? (serialNumber.isEmpty ? nil : serialNumber) : nil
+            vehicle.isEquipment = isEquipment
+            vehicle.currentMileage = isEquipment ? 0 : mileage
             vehicle.oilChangeInterval = interval
             vehicle.oilWeight = oilWeight
             vehicle.oilQuantity = oilQuantity
@@ -202,9 +223,11 @@ struct AddEditVehicleView: View {
                 make: make,
                 model: model,
                 year: yearInt,
-                vin: vin.isEmpty ? nil : vin,
+                vin: isEquipment ? nil : (vin.isEmpty ? nil : vin),
                 licensePlate: licensePlate.isEmpty ? nil : licensePlate,
-                currentMileage: mileage,
+                serialNumber: isEquipment ? (serialNumber.isEmpty ? nil : serialNumber) : nil,
+                isEquipment: isEquipment,
+                currentMileage: isEquipment ? 0 : mileage,
                 oilChangeInterval: interval,
                 oilWeight: oilWeight,
                 oilQuantity: oilQuantity,
