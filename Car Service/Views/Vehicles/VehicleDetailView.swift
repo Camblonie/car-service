@@ -65,8 +65,8 @@ struct VehicleDetailView: View {
                             )
                     }
                     
-                    // Vehicle Name
-                    Text(vehicle.displayName)
+                    // Vehicle Name — equipment omits the year
+                    Text(vehicle.isEquipment ?? false ? "\(vehicle.make) \(vehicle.model)".trimmingCharacters(in: .whitespaces) : vehicle.displayName)
                         .font(.title2)
                         .fontWeight(.bold)
                     
